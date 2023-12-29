@@ -2,11 +2,8 @@
 
 **A PHP library for interacting with ChromaDB vector database seamlessly.**
 
-[![Build Status](https://travis-ci.org/ChromaDatabase/ChromaDB-PHP.svg?branch=master)](https://travis-ci.org/ChromaDatabase/ChromaDB-PHP)
-[![Coverage Status](https://coveralls.io/repos/github/ChromaDatabase/ChromaDB-PHP/badge.svg?branch=master)](https://coveralls.io/github/ChromaDatabase/ChromaDB-PHP?branch=master)
-[![Latest Stable Version](https://poser.pugx.org/chromadb/chromadb-php/v/stable)](https://packagist.org/packages/chromadb/chromadb-php)
-[![Total Downloads](https://poser.pugx.org/chromadb/chromadb-php/downloads)](https://packagist.org/packages/chromadb/chromadb-php)
-[![License](https://poser.pugx.org/chromadb/chromadb-php/license)](https://packagist.org/packages/chromadb/chromadb-php)
+[![MIT Licensed](https://img.shields.io/badge/license-mit-blue.svg)](https://github.com/CodeWithKyrian/chromadb-php/blob/main/LICENSE)
+[![GitHub Tests Action Status](https://img.shields.io/github/workflow/status/CodeWithKyrian/chromadb-php/Tests?label=tests)](https://github.com/CodeWithKyrian/chromadb-php/actions/workflows/test.yml)
 
 ## Description
 
@@ -14,7 +11,7 @@ Chroma is an open-source vector database that allows you to store, search, and a
 It is designed to be fast, scalable, and reliable. It makes it easy to build LLM (Large Language Model) applications and
 services that require high-dimensional vector search.
 
-Chroma PHP provides a simple and intuitive interface for interacting with ChromaDB from PHP. It enables you to:
+ChromaDB PHP provides a simple and intuitive interface for interacting with Chroma from PHP. It enables you to:
 
 - Create, read, update, and delete documents.
 - Execute queries and aggregations.
@@ -154,7 +151,7 @@ $chromaDB = ChromaDB::client();
 ```
 
 By default, ChromaDB will try to connect to `http://localhost:8000` using the default database name `default_database`
-and default tenant name `default_tenant`. You can however change these values by constructing the client using the 
+and default tenant name `default_tenant`. You can however change these values by constructing the client using the
 factory method:
 
 ```php
@@ -174,7 +171,7 @@ If the tenant or database doesn't exist, the package will automatically create t
 
 ```php
 
-$collection = $chromaDB->createCollection('test-collection');
+$collection = $chroma->createCollection('test-collection');
 
 ```
 
@@ -197,11 +194,14 @@ $metadatas = [
 
 $collection->add($ids, $embeddings, $metadatas);
 ```
+
 To insert documents into a collection, you need to provide the following:
 
 - `ids`: An array of document ids. The ids must be unique and must be strings.
-- `embeddings`: An array of document embeddings. The embeddings must be a 1D array of floats with a length of 10. You can 
-    compute the embeddings using any embedding model of your choice (just make sure that's what you use when querying as well).
+- `embeddings`: An array of document embeddings. The embeddings must be a 1D array of floats with a length of 10. You
+  can
+  compute the embeddings using any embedding model of your choice (just make sure that's what you use when querying as
+  well).
 - `metadatas`: An array of document metadatas. The metadatas must be an array of key-value pairs.
 
 If you don't have the embeddings, you can pass in the documents and provide an embedding function that will be used to
@@ -216,31 +216,33 @@ use CodeWithKyrian\ChromaDB\EmbeddingFunction\EmbeddingFunctionInterface;
 
 $embeddingFunction = new OpenAIEmbeddingFunction('api-key', 'org-id', 'model-name');
 
-$collection = $chromaDB->createCollection('test-collection', embeddingFunction: $embeddingFunction);
+$collection = $chroma->createCollection('test-collection', embeddingFunction: $embeddingFunction);
 ```
 
 The embedding function must be an instance of `EmbeddingFunctionInterface`. There are a few built-in embedding functions
 that you can use:
 
-- `OpenAIEmbeddingFunction`: This embedding function uses the OpenAI API to compute the embeddings. You can use it like this:
+- `OpenAIEmbeddingFunction`: This embedding function uses the OpenAI API to compute the embeddings. You can use it like
+  this:
     ```php
-    use CodeWithKyrian\ChromaDB\EmbeddingFunction\OpenAIEmbeddingFunction;
+    use CodeWithKyrian\Chroma\EmbeddingFunction\OpenAIEmbeddingFunction;
     
     $embeddingFunction = new OpenAIEmbeddingFunction('api-key', 'org-id', 'model-name');
     
     $collection = $chromaDB->createCollection('test-collection', embeddingFunction: $embeddingFunction);
     ```
 
-- `HuggingFaceEmbeddingFunction`: This embedding function uses the HuggingFace API to compute the embeddings. You can use it like this:
+- `HuggingFaceEmbeddingFunction`: This embedding function uses the HuggingFace API to compute the embeddings. You can
+  use it like this:
 
     ```php
-    use CodeWithKyrian\ChromaDB\EmbeddingFunction\HuggingFaceEmbeddingFunction;
+    use CodeWithKyrian\Chroma\EmbeddingFunction\HuggingFaceEmbeddingFunction;
     
     $embeddingFunction = new HuggingFaceEmbeddingFunction('api-key', 'model-name');
     
     $collection = $chromaDB->createCollection('test-collection', embeddingFunction: $embeddingFunction);
     ```
-  
+
 You can also create your own embedding function by implementing the `EmbeddingFunctionInterface` interface.
 
 ```php
@@ -253,9 +255,18 @@ $embeddingFunction = new class implements EmbeddingFunctionInterface {
     }
 };
 
-$collection = $chromaDB->createCollection('test-collection', embeddingFunction: $embeddingFunction);
+$collection = $chroma->createCollection('test-collection', embeddingFunction: $embeddingFunction);
 ```
 
+## Contributors
+
+- [Kyrian Obikwelu](https://github.com/CodeWithKyrian)
+- Other contributors are welcome.
+
+## License
+
+This project is licensed under the MIT License. See
+the [LICENSE](https://github.com/codewithkyrian/chromadb-php/blob/main/LICENSE) file for more information.
 
 
 
