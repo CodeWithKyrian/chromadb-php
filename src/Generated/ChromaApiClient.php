@@ -94,7 +94,7 @@ class ChromaApiClient
         }
     }
 
-    public function getDatabase(string $database, string $tenant): ?Database
+    public function getDatabase(string $database, string $tenant): Database
     {
         try {
             $response = $this->httpClient->get("/api/v1/databases/$database", [

@@ -6,6 +6,7 @@ namespace Codewithkyrian\ChromaDB;
 
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
 use Codewithkyrian\ChromaDB\Generated\ChromaApiClient;
+use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaNotFoundException;
 use Codewithkyrian\ChromaDB\Generated\Models\Collection;
 use Codewithkyrian\ChromaDB\Resources\CollectionResource;
 
@@ -23,13 +24,16 @@ class Client
 
     public function initDatabaseAndTenant(): void
     {
-
-        if ($this->apiClient->getTenant($this->tenant) === null) {
+        try {
+            $this->apiClient->getTenant($this->tenant);
+        } catch (ChromaNotFoundException) {
             $createTenantRequest = new Generated\Requests\CreateTenantRequest($this->tenant);
             $this->apiClient->createTenant($createTenantRequest);
         }
 
-        if ($this->apiClient->getDatabase($this->database, $this->tenant) === null) {
+        try {
+            $this->apiClient->getDatabase($this->database, $this->tenant);
+        } catch (ChromaNotFoundException) {
             $createDatabaseRequest = new Generated\Requests\CreateDatabaseRequest($this->database);
             $this->apiClient->createDatabase($this->tenant, $createDatabaseRequest);
         }
