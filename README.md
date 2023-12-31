@@ -1,13 +1,14 @@
 ## ChromaDB PHP
 
-**A PHP library for interacting with ChromaDB vector database seamlessly.**
+**A PHP library for interacting with [Chroma](https://github.com/chroma-core/chroma) vector database seamlessly.**
 
 [![MIT Licensed](https://img.shields.io/badge/license-mit-blue.svg)](https://github.com/CodeWithKyrian/chromadb-php/blob/main/LICENSE)
-[![GitHub Tests Action Status](https://img.shields.io/github/workflow/status/CodeWithKyrian/chromadb-php/Tests?label=tests)](https://github.com/CodeWithKyrian/chromadb-php/actions/workflows/test.yml)
+[![GitHub Tests Action Status](https://github.com/CodeWithKyrian/chromadb-php/actions/workflows/test.yml/badge.svg)](https://github.com/CodeWithKyrian/chromadb-php/actions/workflows/test.yml)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/codewithkyrian/chromadb-php.svg)](https://packagist.org/packages/codewithkyrian/chromadb-php)
 
 ## Description
 
-Chroma is an open-source vector database that allows you to store, search, and analyze high-dimensional data at scale.
+[Chroma](https://www.trychroma.com/) is an open-source vector database that allows you to store, search, and analyze high-dimensional data at scale.
 It is designed to be fast, scalable, and reliable. It makes it easy to build LLM (Large Language Model) applications and
 services that require high-dimensional vector search.
 
