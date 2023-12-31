@@ -2,6 +2,7 @@
   "name": "codewithkyrian/chromadb-php",
   "description": "A PHP client for the Chroma Open Source Embedding Database",
   "type": "library",
+  "license": "MIT",
   "require": {
     "php": "^8.1",
     "guzzlehttp/guzzle": "^7.0"
