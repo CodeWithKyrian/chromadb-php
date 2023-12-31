@@ -1,0 +1,27 @@
+{
+    "name": "kyrian/examples",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+        }
+    },
+    "authors": [
+        {
+            "name": "Kyrian Obikwelu",
+            "email": "koshnawaza@gmail.com"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "require": {
+        "codewithkyrian/chromadb-php": "@dev",
+        "symfony/var-dumper": "^6.3"
+    }
+}

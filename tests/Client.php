@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Codewithkyrian\ChromaDB\ChromaDB;
+use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaDimensionalityException;
 use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaValueException;
 use Codewithkyrian\ChromaDB\Resources\CollectionResource;
 
@@ -13,6 +14,8 @@ beforeEach(function () {
         ->connect();
 
     $this->client->deleteAllCollections();
+
+    $this->collection = $this->client->createCollection('test_collection');
 });
 
 
@@ -37,9 +40,8 @@ it('can list collections', function () {
 
     expect($collections)
         ->toBeArray()
-        ->toHaveCount(0);
+        ->toHaveCount(1);
 
-    $this->client->createCollection('test_collection');
     $this->client->createCollection('test_collection_2');
 
     $collections = $this->client->listCollections();
@@ -51,8 +53,6 @@ it('can list collections', function () {
 
 
 it('can create or get collections', function () {
-    $this->client->createCollection('test_collection');
-
     $collection = $this->client->getOrCreateCollection('test_collection');
 
     expect($collection)
@@ -67,8 +67,6 @@ it('can create or get collections', function () {
 });
 
 it('can get a collection', function () {
-    $this->client->createCollection('test_collection');
-
     $collection = $this->client->getCollection('test_collection');
 
     expect($collection)
@@ -76,16 +74,12 @@ it('can get a collection', function () {
         ->toHaveProperty('name', 'test_collection');
 });
 
+it('throws a value error when getting a collection that does not exist', function () {
+    $this->client->getCollection('test_collection_2');
+})->throws(ChromaValueException::class, 'Collection test_collection_2 does not exist.');
 
 it('can modify a collection name or metadata', function () {
-    $collection = $this->client->createCollection('test_collection', ['test' => 'test']);
-
-    expect($collection->name)
-        ->toBe('test_collection')
-        ->and($collection->metadata)
-        ->toMatchArray(['test' => 'test']);
-
-    $collection->modify('test_collection_2', ['test' => 'test_2']);
+    $this->collection->modify('test_collection_2', ['test' => 'test_2']);
 
     $collection = $this->client->getCollection('test_collection_2');
 
@@ -97,64 +91,89 @@ it('can modify a collection name or metadata', function () {
 });
 
 it('can delete a collection', function () {
-    $this->client->createCollection('test_collection');
-
-    $collection = $this->client->getCollection('test_collection');
-
-    expect($collection)
-        ->toBeInstanceOf(CollectionResource::class)
-        ->toHaveProperty('name', 'test_collection');
-
     $this->client->deleteCollection('test_collection');
 
-    $collection = $this->client->getCollection('test_collection');
-
-    expect($collection)
-        ->toBeNull();
+    expect(fn() => $this->client->getCollection('test_collection'))
+        ->toThrow(ChromaValueException::class);
 });
+
+it('can delete all collections', function () {
+    $this->client->createCollection('test_collection_2');
+
+    $collections = $this->client->listCollections();
+
+    expect($collections)
+        ->toBeArray()
+        ->toHaveCount(2);
+
+    $this->client->deleteAllCollections();
+
+    $collections = $this->client->listCollections();
+
+    expect($collections)
+        ->toBeArray()
+        ->toHaveCount(0);
+});
+
+it('throws a value error when deleting a collection that does not exist', function () {
+    $this->client->deleteCollection('test_collection_2');
+})->throws(ChromaValueException::class, 'Collection test_collection_2 does not exist.');
 
 it('can add single embeddings to a collection', function () {
-    $collection = $this->client->createCollection('test_collection');
-
     $ids = ['test1'];
     $embeddings = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]];
     $metadatas = [['test' => 'test']];
-    $collection->add($ids, $embeddings, $metadatas);
 
-    expect($collection->count())->toBe(1);
+    $this->collection->add($ids, $embeddings, $metadatas);
+
+    expect($this->collection->count())->toBe(1);
 });
 
-it('can upsert single embeddings to a collection', function () {
-    $collection = $this->client->createCollection('test_collection');
-
+it('cannot add single embeddings to a collection with a different dimensionality', function () {
     $ids = ['test1'];
     $embeddings = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]];
     $metadatas = [['test' => 'test']];
-    $collection->upsert($ids, $embeddings, $metadatas);
 
-    expect($collection->count())->toBe(1);
+    $this->collection->add($ids, $embeddings, $metadatas);
 
-    $collection->upsert($ids, $embeddings, $metadatas);
+    // Dimensionality is now 10. Other embeddings must have the same dimensionality.
 
-    expect($collection->count())->toBe(1);
+    $ids = ['test2'];
+    $embeddings = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]];
+    $metadatas = [['test' => 'test2']];
+
+    $this->collection->add($ids, $embeddings, $metadatas);
+})->throws(ChromaDimensionalityException::class, 'Embedding dimension 11 does not match collection dimensionality 10');
+
+it('can upsert single embeddings to a collection', function () {
+    $ids = ['test1'];
+    $embeddings = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]];
+    $metadatas = [['test' => 'test']];
+
+    $this->collection->upsert($ids, $embeddings, $metadatas);
+
+    expect($this->collection->count())->toBe(1);
+
+    $this->collection->upsert($ids, $embeddings, $metadatas);
+
+    expect($this->collection->count())->toBe(1);
 });
 
 
 it('can update single embeddings in a collection', function () {
-    $collection = $this->client->createCollection('test_collection');
-
     $ids = ['test1'];
     $embeddings = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]];
     $metadatas = [['test' => 'test']];
-    $collection->add($ids, $embeddings, $metadatas);
 
-    expect($collection->count())->toBe(1);
+    $this->collection->add($ids, $embeddings, $metadatas);
 
-    $collection->update($ids, $embeddings, $metadatas);
+    expect($this->collection->count())->toBe(1);
 
-    expect($collection->count())->toBe(1);
+    $this->collection->update($ids, $embeddings, $metadatas);
 
-    $collectionItems = $collection->get($ids);
+    expect($this->collection->count())->toBe(1);
+
+    $collectionItems = $this->collection->get($ids);
 
     expect($collectionItems->ids)
         ->toMatchArray($ids)
@@ -165,8 +184,6 @@ it('can update single embeddings in a collection', function () {
 });
 
 it('can add batch embeddings to a collection', function () {
-    $collection = $this->client->createCollection('test_collection');
-
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
@@ -178,11 +195,12 @@ it('can add batch embeddings to a collection', function () {
         ['some' => 'metadata2'],
         ['some' => 'metadata3'],
     ];
-    $collection->add($ids, $embeddings, $metadatas);
 
-    expect($collection->count())->toBe(3);
+    $this->collection->add($ids, $embeddings, $metadatas);
 
-    $getResponse = $collection->get($ids);
+    expect($this->collection->count())->toBe(3);
+
+    $getResponse = $this->collection->get($ids);
 
     expect($getResponse->ids)
         ->toMatchArray($ids)
@@ -192,35 +210,24 @@ it('can add batch embeddings to a collection', function () {
         ->toMatchArray($metadatas);
 });
 
-it('can query a collection', function () {
-    $collection = $this->client->createCollection('test_collection');
-
+it('cannot add batch embeddings with different dimensionalities to a collection', function () {
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
-        [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0],
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        [11, 12, 13, 14, 15, 16, 17, 18, 19],
+        [21, 22, 23, 24, 25, 26, 27, 28],
+    ];
+    $metadatas = [
+        ['some' => 'metadata1'],
+        ['some' => 'metadata2'],
+        ['some' => 'metadata3'],
     ];
 
-    $collection->add($ids, $embeddings);
+    $this->collection->add($ids, $embeddings, $metadatas);
+})->throws(ChromaDimensionalityException::class);
 
-    expect($collection->count())->toBe(3);
-
-    $queryResponse = $collection->query(
-        queryEmbeddings: [
-            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-        ],
-        nResults: 2
-    );
-
-    expect($queryResponse->ids[0])
-        ->toMatchArray(['test1', 'test2']);
-
-});
 
 it('can peek a collection', function () {
-    $collection = $this->client->createCollection('test_collection');
-
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
         [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -228,20 +235,44 @@ it('can peek a collection', function () {
         [11.0, 12.0, 13.0, 14.0, 15.0],
     ];
 
-    $collection->add($ids, $embeddings);
+    $this->collection->add($ids, $embeddings);
 
-    expect($collection->count())->toBe(3);
+    expect($this->collection->count())->toBe(3);
 
-    $peekResponse = $collection->peek(2);
+    $peekResponse = $this->collection->peek(2);
 
     expect($peekResponse->ids)
         ->toMatchArray(['test1', 'test2']);
 
 });
 
-it('can get a collection by id', function () {
-    $collection = $this->client->createCollection('test_collection');
+it('can query a collection', function () {
+    $ids = ['test1', 'test2', 'test3'];
+    $embeddings = [
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
+        [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0],
+    ];
 
+    $this->collection->add($ids, $embeddings);
+
+    expect($this->collection->count())->toBe(3);
+
+    $queryResponse = $this->collection->query(
+        queryEmbeddings: [
+            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+        ],
+        nResults: 2
+    );
+
+    expect($queryResponse->ids[0])
+        ->toMatchArray(['test1', 'test2'])
+        ->and($queryResponse->distances[0])
+        ->toMatchArray([0.0, 0.0]);
+
+});
+
+it('can get a collection by id', function () {
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
         [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -254,11 +285,11 @@ it('can get a collection by id', function () {
         ['some' => 'metadata3'],
     ];
 
-    $collection->add($ids, $embeddings, $metadatas);
+    $this->collection->add($ids, $embeddings, $metadatas);
 
-    expect($collection->count())->toBe(3);
+    expect($this->collection->count())->toBe(3);
 
-    $collectionItems = $collection->get(['test1', 'test2']);
+    $collectionItems = $this->collection->get(['test1', 'test2']);
 
     expect($collectionItems->ids)
         ->toMatchArray(['test1', 'test2'])
@@ -269,9 +300,8 @@ it('can get a collection by id', function () {
         ]);
 });
 
-it('can get a collection by where', function () {
-    $collection = $this->client->createCollection('test_collection');
 
+it('can get a collection by where', function () {
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
         [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -284,11 +314,11 @@ it('can get a collection by where', function () {
         ['some' => 'metadata3'],
     ];
 
-    $collection->add($ids, $embeddings, $metadatas);
+    $this->collection->add($ids, $embeddings, $metadatas);
 
-    expect($collection->count())->toBe(3);
+    expect($this->collection->count())->toBe(3);
 
-    $collectionItems = $collection->get(
+    $collectionItems = $this->collection->get(
         where: [
             'some' => ['$eq' => 'metadata1']
         ]
@@ -301,8 +331,6 @@ it('can get a collection by where', function () {
 });
 
 it('throws a value error when getting a collection by where with an invalid operator', function () {
-    $collection = $this->client->createCollection('test_collection');
-
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
         [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -315,11 +343,11 @@ it('throws a value error when getting a collection by where with an invalid oper
         ['some' => 'metadata3'],
     ];
 
-    $collection->add($ids, $embeddings, $metadatas);
+    $this->collection->add($ids, $embeddings, $metadatas);
 
-    expect($collection->count())->toBe(3);
+    expect($this->collection->count())->toBe(3);
 
-    $collectionItems = $collection->get(
+    $collectionItems = $this->collection->get(
         where: [
             'some' => ['$invalid' => 'metadata1']
         ]
@@ -327,8 +355,6 @@ it('throws a value error when getting a collection by where with an invalid oper
 })->throws(ChromaValueException::class);
 
 it('can delete a collection by id', function () {
-    $collection = $this->client->createCollection('test_collection');
-
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
         [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -341,18 +367,16 @@ it('can delete a collection by id', function () {
         ['some' => 'metadata3'],
     ];
 
-    $collection->add($ids, $embeddings, $metadatas);
+    $this->collection->add($ids, $embeddings, $metadatas);
 
-    expect($collection->count())->toBe(3);
+    expect($this->collection->count())->toBe(3);
 
-    $collection->delete(['test1', 'test2']);
+    $this->collection->delete(['test1', 'test2']);
 
-    expect($collection->count())->toBe(1);
+    expect($this->collection->count())->toBe(1);
 });
 
 it('can delete a collection by where', function () {
-    $collection = $this->client->createCollection('test_collection');
-
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
         [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -365,15 +389,15 @@ it('can delete a collection by where', function () {
         ['some' => 'metadata3'],
     ];
 
-    $collection->add($ids, $embeddings, $metadatas);
+    $this->collection->add($ids, $embeddings, $metadatas);
 
-    expect($collection->count())->toBe(3);
+    expect($this->collection->count())->toBe(3);
 
-    $collection->delete(
+    $this->collection->delete(
         where: [
             'some' => 'metadata1'
         ]
     );
 
-    expect($collection->count())->toBe(2);
+    expect($this->collection->count())->toBe(2);
 });

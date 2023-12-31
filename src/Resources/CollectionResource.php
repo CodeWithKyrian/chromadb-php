@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Codewithkyrian\ChromaDB\Resources;
 
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
-use Codewithkyrian\ChromaDB\Enums\CollectionInclude;
 use Codewithkyrian\ChromaDB\Generated\ChromaApiClient;
 use Codewithkyrian\ChromaDB\Generated\Models\Collection;
 use Codewithkyrian\ChromaDB\Generated\Requests\AddEmbeddingRequest;
@@ -82,7 +81,6 @@ class CollectionResource
      * @param ?array $documents The documents of the items to add (optional).
      * @param ?array $images The base64 encoded images of the items to add (optional).
      * @return void
-     * @throws \Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaApiExceptionInterface
      */
     public function add(
         array  $ids,
@@ -203,13 +201,15 @@ class CollectionResource
      * Returns the first `$limit` entries of the collection.
      *
      * @param int $limit The number of entries to return. Defaults to 10.
-     * @param CollectionInclude[] $include The list of fields to include in the response (optional).
+     * @param string[] $include The list of fields to include in the response (optional).
      */
     public function peek(
         int $limit = 10,
-        array $include = [CollectionInclude::DOCUMENTS, CollectionInclude::EMBEDDINGS, CollectionInclude::METADATAS]
+        array $include = null
     ): GetItemsResponse
     {
+        $include ??= ['embeddings', 'metadatas', 'distances'];
+
         $request = new GetEmbeddingRequest(
             limit: $limit,
             include: $include,
@@ -226,7 +226,7 @@ class CollectionResource
      * @param array $whereDocument The where clause to filter items by (optional).
      * @param int $limit The limit on the number of items to get (optional).
      * @param int $offset The offset on the number of items to get (optional).
-     * @param CollectionInclude[] $include The list of fields to include in the response (optional).
+     * @param string[] $include The list of fields to include in the response (optional).
      */
     public function get(
         ?array $ids = null,
@@ -234,9 +234,11 @@ class CollectionResource
         ?array $whereDocument = null,
         ?int   $limit = null,
         ?int   $offset = null,
-        ?array $include = [CollectionInclude::DOCUMENTS, CollectionInclude::EMBEDDINGS, CollectionInclude::METADATAS]
+        ?array $include = null
     ): GetItemsResponse
     {
+        $include ??= ['embeddings', 'metadatas', 'distances'];
+
         $request = new GetEmbeddingRequest(
             ids: $ids,
             where: $where,
@@ -274,16 +276,18 @@ class CollectionResource
      */
     public function query(
         array $queryEmbeddings = null,
-        array $queryDocuments = null,
+        array $queryTexts = null,
         array $queryImages = null,
         int   $nResults = 10,
         array $where = null,
         array $whereDocument = null,
-        array $include = [CollectionInclude::DOCUMENTS, CollectionInclude::EMBEDDINGS, CollectionInclude::METADATAS]
+        array $include = null
     ): QueryItemsResponse
     {
+        $include ??= ['embeddings', 'metadatas', 'distances'];
+
         if (
-            !(($queryEmbeddings != null xor $queryDocuments != null xor $queryImages != null))
+            !(($queryEmbeddings != null xor $queryTexts != null xor $queryImages != null))
         ) {
             throw new \InvalidArgumentException(
                 'You must provide only one of queryEmbeddings, queryTexts, queryImages, or queryUris'
@@ -297,8 +301,8 @@ class CollectionResource
                 throw new \InvalidArgumentException(
                     'You must provide an embedding function if you did not provide embeddings'
                 );
-            } elseif ($queryDocuments != null) {
-                $finalEmbeddings = $this->embeddingFunction->generate($queryDocuments);
+            } elseif ($queryTexts != null) {
+                $finalEmbeddings = $this->embeddingFunction->generate($queryTexts);
             } elseif ($queryImages != null) {
                 $finalEmbeddings = $this->embeddingFunction->generate($queryImages);
             } else {

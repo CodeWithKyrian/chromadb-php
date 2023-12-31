@@ -8,17 +8,25 @@ namespace Codewithkyrian\ChromaDB\Embeddings;
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Client\ClientExceptionInterface;
 
 class JinaEmbeddingFunction implements EmbeddingFunction
 {
-
-    private const API_URL = 'https://api.jina.ai/v1/embeddings';
+    private Client $client;
 
     public function __construct(
         public readonly string $apiKey,
         public readonly string $model = 'jina-embeddings-v2-base-en',
     )
     {
+        $this->client = new Client([
+            'base_uri' => 'https://api.jina.ai/v1/',
+            'headers' => [
+                'Authorization' => "Bearer $this->apiKey",
+                'Content-Type' => 'application/json',
+                'Accept-Encoding' => 'identity',
+            ]
+        ]);
     }
 
     /**
@@ -26,20 +34,12 @@ class JinaEmbeddingFunction implements EmbeddingFunction
      */
     public function generate(array $texts): array
     {
-        $client = new Client([
-            'headers' => [
-                'Authorization' => "Bearer $this->apiKey",
-                'Content-Type' => 'application/json',
-                'Accept-Encoding' => 'identity',
-            ]
-        ]);
-
         try {
-            $response = $client->post(self::API_URL, [
-                'body' => json_encode([
+            $response = $this->client->post('embeddings', [
+                'json' => [
                     'model' => $this->model,
                     'input' => $texts,
-                ])
+                ]
             ]);
 
             $result = json_decode($response->getBody()->getContents(), true);
@@ -47,8 +47,8 @@ class JinaEmbeddingFunction implements EmbeddingFunction
             usort($embeddings, fn($a, $b) => $a['index'] <=> $b['index']);
 
             return array_map(fn($embedding) => $embedding['embedding'], $embeddings);
-        } catch (GuzzleException $e) {
-            throw new \RuntimeException('Failed to generate embeddings', 0, $e);
+        } catch (ClientExceptionInterface $e) {
+            throw new \RuntimeException("Error calling Jina AI API: {$e->getMessage()}", 0, $e);
         }
     }
 }

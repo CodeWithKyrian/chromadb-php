@@ -5,11 +5,7 @@ declare(strict_types=1);
 
 namespace Codewithkyrian\ChromaDB\Generated;
 
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaApiException;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaApiExceptionFactory;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaApiExceptionInterface;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaNotFoundException;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaValueException;
+use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaException;
 use Codewithkyrian\ChromaDB\Generated\Models\Collection;
 use Codewithkyrian\ChromaDB\Generated\Models\Database;
 use Codewithkyrian\ChromaDB\Generated\Models\Tenant;
@@ -25,8 +21,6 @@ use Codewithkyrian\ChromaDB\Generated\Requests\UpdateEmbeddingRequest;
 use Codewithkyrian\ChromaDB\Generated\Responses\GetItemsResponse;
 use Codewithkyrian\ChromaDB\Generated\Responses\QueryItemsResponse;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
 use Psr\Http\Client\ClientExceptionInterface;
 
@@ -47,13 +41,7 @@ class ChromaApiClient
         try {
             $response = $this->httpClient->get('/api/v1');
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode(), $e);
-            }
+            $this->handleChromaApiException($e);
         }
         return json_decode($response->getBody()->getContents(), true);
     }
@@ -67,13 +55,7 @@ class ChromaApiClient
             // remove the quo
             return trim($response->getBody()->getContents(), '"');
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode(), $e);
-            }
+            $this->handleChromaApiException($e);
         }
     }
 
@@ -82,13 +64,7 @@ class ChromaApiClient
         try {
             $response = $this->httpClient->get('/api/v1/heartbeat');
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode(), $e);
-            }
+            $this->handleChromaApiException($e);
         }
         return json_decode($response->getBody()->getContents(), true);
     }
@@ -98,13 +74,7 @@ class ChromaApiClient
         try {
             $response = $this->httpClient->get('/api/v1/pre-flight-checks');
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode(), $e);
-            }
+            $this->handleChromaApiException($e);
         }
         return json_decode($response->getBody()->getContents(), true);
     }
@@ -120,13 +90,7 @@ class ChromaApiClient
                 ]
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode(), $e);
-            }
+            $this->handleChromaApiException($e);
         }
     }
 
@@ -139,15 +103,7 @@ class ChromaApiClient
                 ]
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception === null) {
-                throw new ChromaApiException($e->getMessage(), $e->getCode(), $e);
-            } elseif ($exception instanceof ChromaNotFoundException) {
-                return null;
-            } else {
-                throw $exception;
-            }
+            $this->handleChromaApiException($e);
         }
 
         $result = json_decode($response->getBody()->getContents(), true);
@@ -162,13 +118,7 @@ class ChromaApiClient
                 'json' => $request->toArray(),
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode(), $e);
-            }
+            $this->handleChromaApiException($e);
         }
     }
 
@@ -181,15 +131,7 @@ class ChromaApiClient
 
             return Tenant::make($result);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception === null) {
-                throw new ChromaApiException($e->getMessage(), $e->getCode(), $e);
-            } elseif ($exception instanceof ChromaNotFoundException) {
-                return null;
-            } else {
-                throw $exception;
-            }
+            $this->handleChromaApiException($e);
         }
 
     }
@@ -205,13 +147,7 @@ class ChromaApiClient
                 ]
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
 
         $result = json_decode($response->getBody()->getContents(), true);
@@ -233,13 +169,7 @@ class ChromaApiClient
             ]);
 
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
 
         $result = json_decode($response->getBody()->getContents(), true);
@@ -247,7 +177,7 @@ class ChromaApiClient
         return Collection::make($result);
     }
 
-    public function getCollection(string $collectionId, string $database, string $tenant): ?Collection
+    public function getCollection(string $collectionId, string $database, string $tenant): Collection
     {
         try {
             $response = $this->httpClient->get("/api/v1/collections/$collectionId", [
@@ -257,15 +187,7 @@ class ChromaApiClient
                 ]
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception === null) {
-                throw new ChromaApiException($e->getMessage(), $e->getCode(), $e);
-            } elseif ($exception instanceof ChromaValueException) {
-                return null;
-            } else {
-                throw $exception;
-            }
+            $this->handleChromaApiException($e);
         }
 
         $result = json_decode($response->getBody()->getContents(), true);
@@ -273,20 +195,14 @@ class ChromaApiClient
         return Collection::make($result);
     }
 
-    public function updateCollection(string $collectionId, UpdateCollectionRequest $request) : void
+    public function updateCollection(string $collectionId, UpdateCollectionRequest $request): void
     {
         try {
             $response = $this->httpClient->put("/api/v1/collections/$collectionId", [
                 'json' => $request->toArray(),
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
     }
 
@@ -300,13 +216,7 @@ class ChromaApiClient
                 ]
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
     }
 
@@ -317,13 +227,7 @@ class ChromaApiClient
                 'json' => $request->toArray(),
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
     }
 
@@ -334,13 +238,7 @@ class ChromaApiClient
                 'json' => $request->toArray(),
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
     }
 
@@ -351,13 +249,7 @@ class ChromaApiClient
                 'json' => $request->toArray(),
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
     }
 
@@ -368,13 +260,7 @@ class ChromaApiClient
                 'json' => $request->toArray(),
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
 
         $result = json_decode($response->getBody()->getContents(), true);
@@ -389,13 +275,7 @@ class ChromaApiClient
                 'json' => $request->toArray(),
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
     }
 
@@ -404,13 +284,7 @@ class ChromaApiClient
         try {
             $response = $this->httpClient->get("/api/v1/collections/$collectionId/count");
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
 
         return json_decode($response->getBody()->getContents(), true);
@@ -423,13 +297,7 @@ class ChromaApiClient
                 'json' => $request->toArray(),
             ]);
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
 
         $result = json_decode($response->getBody()->getContents(), true);
@@ -442,19 +310,13 @@ class ChromaApiClient
         try {
             $response = $this->httpClient->post('/api/v1/reset');
         } catch (ClientExceptionInterface $e) {
-            $exception = $this->extractChromaApiException($e);
-
-            if ($exception !== null) {
-                throw $exception;
-            } else {
-                throw new ChromaApiException($e->getMessage(), $e->getCode());
-            }
+            $this->handleChromaApiException($e);
         }
 
         return json_decode($response->getBody()->getContents(), true);
     }
 
-    private function extractChromaApiException(\Exception|ClientExceptionInterface $e): ?ChromaApiExceptionInterface
+    private function handleChromaApiException(\Exception|ClientExceptionInterface $e): void
     {
         if ($e instanceof ServerException) {
             $errorString = $e->getResponse()->getBody()->getContents();
@@ -466,27 +328,44 @@ class ChromaApiClient
             $error = json_decode($errorString, true);
 
             if ($error !== null) {
-                // Use regular expressions to extract the error type and message
-                preg_match(
+
+                // If the structure is 'error' => 'NotFoundError("Collection not found")'
+                if (preg_match(
                     '/^(?P<error_type>\w+)\((?P<message>.*)\)$/',
-                    $error['error'],
-                    $matches
-                );
+                    $error['error'] ?? '',
+                    $matches)
+                ) {
+                    if (isset($matches['message'])) {
+                        $error_type = $matches['error_type'] ?? 'UnknownError';
+                        $message = $matches['message'];
 
-                if (isset($matches['error_type']) && isset($matches['message'])) {
-                    $error_type = $matches['error_type'];
-                    $message = $matches['message'];
+                        // Remove trailing and leading quotes
+                        if (str_starts_with($message, "'") && str_ends_with($message, "'")) {
+                            $message = substr($message, 1, -1);
+                        }
 
-                    // Remove trailing and leading quotes
-                    if (str_starts_with($message, "'") && str_ends_with($message, "'")) {
-                        $message = substr($message, 1, -1);
+                        ChromaException::throwSpecific($message, $error_type, $e->getCode());
                     }
+                }
 
-                    return ChromaApiExceptionFactory::make($message, $error_type, $e->getCode());
+                // If the structure is 'detail' => 'Collection not found'
+                if (isset($error['detail'])) {
+                    $message = $error['detail'];
+                    $error_type = ChromaException::inferTypeFromMessage($message);
+
+                    ChromaException::throwSpecific($message, $error_type, $e->getCode());
+                }
+
+                // If the structure is 'error' => 'Collection not found'
+                if (isset($error['error'])) {
+                    $message = $error['error'];
+                    $error_type = ChromaException::inferTypeFromMessage($message);
+
+                    ChromaException::throwSpecific($message, $error_type, $e->getCode());
                 }
             }
         }
 
-        return null;
+        throw new ChromaException($e->getMessage(), $e->getCode());
     }
 }

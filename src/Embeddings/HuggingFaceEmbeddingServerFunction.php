@@ -8,11 +8,11 @@ namespace Codewithkyrian\ChromaDB\Embeddings;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
-class HuggingFaceEmbeddingFunction implements EmbeddingFunction
+class HuggingFaceEmbeddingServerFunction implements EmbeddingFunction
 {
 
     public function __construct(
-        public readonly string $url,
+        public readonly string $baseUrl = 'http://localhost:8080',
     )
     {
     }
@@ -20,13 +20,14 @@ class HuggingFaceEmbeddingFunction implements EmbeddingFunction
     public function generate(array $texts): array
     {
         $client = new Client([
+            'base_uri' => $this->baseUrl,
             'headers' => [
                 'Content-Type' => 'application/json',
             ]
         ]);
 
         try {
-            $response = $client->post($this->url, [
+            $response = $client->post('embed', [
                 'body' => json_encode([
                     'inputs' => $texts,
                 ])

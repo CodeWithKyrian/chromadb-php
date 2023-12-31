@@ -21,9 +21,6 @@ class Client
     }
 
 
-    /**
-     * @throws Generated\Exceptions\ChromaApiExceptionInterface
-     */
     public function initDatabaseAndTenant(): void
     {
 
@@ -118,20 +115,17 @@ class Client
     }
 
     /**
-     * Gets a collection with the specified name.
+     * Gets a collection with the specified name. Will raise an exception if the
+     * collection does not exist.
      *
      * @param string $name The name of the collection.
      * @param ?EmbeddingFunction $embeddingFunction Optional custom embedding function for the collection.
      *
-     * @return ?CollectionResource
+     * @return CollectionResource
      */
-    public function getCollection(string $name, ?EmbeddingFunction $embeddingFunction = null): ?CollectionResource
+    public function getCollection(string $name, ?EmbeddingFunction $embeddingFunction = null): CollectionResource
     {
         $collection = $this->apiClient->getCollection($name, $this->database, $this->tenant);
-
-        if ($collection === null) {
-            return null;
-        }
 
         return CollectionResource::make(
             $collection,
