@@ -353,6 +353,7 @@ class ChromaApiClient
                     $message = $error['detail'];
                     $error_type = ChromaException::inferTypeFromMessage($message);
 
+
                     ChromaException::throwSpecific($message, $error_type, $e->getCode());
                 }
 

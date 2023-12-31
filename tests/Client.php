@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Codewithkyrian\ChromaDB\ChromaDB;
+use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
 use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaDimensionalityException;
+use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaTypeException;
 use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaValueException;
 use Codewithkyrian\ChromaDB\Resources\CollectionResource;
 
@@ -15,7 +17,19 @@ beforeEach(function () {
 
     $this->client->deleteAllCollections();
 
-    $this->collection = $this->client->createCollection('test_collection');
+    $this->embeddingFunction = new class implements EmbeddingFunction {
+        public function generate(array $texts): array
+        {
+            return array_map(function ($text) {
+                return [1.0, 2.0, 3.0, 4.0, 5.0];
+            }, $texts);
+        }
+    };
+
+    $this->collection = $this->client->createCollection(
+        name: 'test_collection',
+        embeddingFunction: $this->embeddingFunction
+    );
 });
 
 
@@ -129,6 +143,28 @@ it('can add single embeddings to a collection', function () {
     expect($this->collection->count())->toBe(1);
 });
 
+it('cannot add invalid single embeddings to a collection', function () {
+    $ids = ['test1'];
+    $embeddings = ['this is not an embedding'];
+    $metadatas = [['test' => 'test']];
+
+    $this->collection->add($ids, $embeddings, $metadatas);
+})->throws(ChromaTypeException::class);
+
+it('can add single text documents to a collection', function () {
+    $ids = ['test1'];
+    $documents = ['This is a test document'];
+    $metadatas = [['test' => 'test']];
+
+    $this->collection->add(
+        $ids,
+        metadatas: $metadatas,
+        documents: $documents
+    );
+
+    expect($this->collection->count())->toBe(1);
+});
+
 it('cannot add single embeddings to a collection with a different dimensionality', function () {
     $ids = ['test1'];
     $embeddings = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]];
@@ -183,6 +219,40 @@ it('can update single embeddings in a collection', function () {
         ->toMatchArray($metadatas);
 });
 
+it('can update single documents in a collection', function () {
+    $ids = ['test1'];
+    $documents = ['This is a test document'];
+    $metadatas = [['test' => 'test']];
+
+    $this->collection->add(
+        $ids,
+        metadatas: $metadatas,
+        documents: $documents
+    );
+
+    expect($this->collection->count())->toBe(1);
+
+    $newDocuments = ['This is a new test document'];
+    $newMetadatas = [['test' => 'test2']];
+
+    $this->collection->update(
+        $ids,
+        metadatas: $newMetadatas,
+        documents: $newDocuments
+    );
+
+    expect($this->collection->count())->toBe(1);
+
+    $collectionItems = $this->collection->get($ids, include: ['documents', 'metadatas']);
+
+    expect($collectionItems->ids)
+        ->toMatchArray($ids)
+        ->and($collectionItems->documents)
+        ->toMatchArray($newDocuments)
+        ->and($collectionItems->metadatas)
+        ->toMatchArray($newMetadatas);
+});
+
 it('can add batch embeddings to a collection', function () {
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
@@ -210,7 +280,7 @@ it('can add batch embeddings to a collection', function () {
         ->toMatchArray($metadatas);
 });
 
-it('cannot add batch embeddings with different dimensionalities to a collection', function () {
+it('cannot add batch embeddings with different dimensionality to a collection', function () {
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
@@ -225,6 +295,37 @@ it('cannot add batch embeddings with different dimensionalities to a collection'
 
     $this->collection->add($ids, $embeddings, $metadatas);
 })->throws(ChromaDimensionalityException::class);
+
+it('can add batch documents to a collection', function () {
+    $ids = ['test1', 'test2', 'test3'];
+    $documents = [
+        'This is a test document',
+        'This is another test document',
+        'This is a third test document',
+    ];
+    $metadatas = [
+        ['some' => 'metadata1'],
+        ['some' => 'metadata2'],
+        ['some' => 'metadata3'],
+    ];
+
+    $this->collection->add(
+        $ids,
+        metadatas: $metadatas,
+        documents: $documents
+    );
+
+    expect($this->collection->count())->toBe(3);
+
+    $getResponse = $this->collection->get($ids, include: ['documents', 'metadatas']);
+
+    expect($getResponse->ids)
+        ->toMatchArray($ids)
+        ->and($getResponse->documents)
+        ->toMatchArray($documents)
+        ->and($getResponse->metadatas)
+        ->toMatchArray($metadatas);
+});
 
 
 it('can peek a collection', function () {
@@ -328,6 +429,36 @@ it('can get a collection by where', function () {
         ->toHaveCount(1)
         ->and($collectionItems->ids[0])
         ->toBe('test1');
+});
+
+it('can query a collection using query texts', function () {
+    $ids = ['test1', 'test2', 'test3'];
+    $documents = [
+        'This is a test document',
+        'This is another test document',
+        'This is a third test document',
+    ];
+    $metadatas = [
+        ['some' => 'metadata1'],
+        ['some' => 'metadata2'],
+        ['some' => 'metadata3'],
+    ];
+
+    $this->collection->add(
+        $ids,
+        metadatas: $metadatas,
+        documents: $documents
+    );
+
+    expect($this->collection->count())->toBe(3);
+
+    $queryResponse = $this->collection->query(
+        queryTexts: ['This is a test document'],
+        nResults: 1
+    );
+
+    expect($queryResponse->ids[0])
+        ->toMatchArray(['test1']);
 });
 
 it('throws a value error when getting a collection by where with an invalid operator', function () {

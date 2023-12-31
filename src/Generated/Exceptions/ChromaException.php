@@ -19,6 +19,8 @@ class ChromaException extends \Exception
                 throw new ChromaUniqueConstraintException($message, $code);
             case 'DimensionalityError':
                 throw new ChromaDimensionalityException($message, $code);
+            case 'TypeError':
+                throw new ChromaTypeException($message, $code);
             default:
                 throw new self($message, $code);
         }
