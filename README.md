@@ -100,23 +100,12 @@ Or if you prefer using a docker-compose file, you can use the following:
 version: '3.9'
 
 services:
-  server:
+  chroma:
     image: 'chromadb/chroma'
-    command: uvicorn chromadb.app:app --reload --workers 1 --host 0.0.0.0 --port 8000 --log-config chromadb/log_config.yml --timeout-keep-alive 30
     ports:
       - '8000:8000'
     volumes:
       - chroma-data:/chroma/chroma
-    environment:
-      - IS_PERSISTENT=TRUE
-      - CHROMA_SERVER_NOFILE=65535
-      - ALLOW_RESET=true
-    networks:
-      - net
-
-networks:
-  net:
-    driver: bridge
 
 volumes:
   chroma-data:
@@ -202,9 +191,8 @@ $collection->add($ids, $embeddings, $metadatas);
 To insert documents into a collection, you need to provide the following:
 
 - `ids`: An array of document ids. The ids must be unique and must be strings.
-- `embeddings`: An array of document embeddings. The embeddings must be a 1D array of floats with a length of 10. You
-  can
-  compute the embeddings using any embedding model of your choice (just make sure that's what you use when querying as
+- `embeddings`: An array of document embeddings. The embeddings must be a 1D array of floats with a consistent length. You
+  can compute the embeddings using any embedding model of your choice (just make sure that's what you use when querying as
   well).
 - `metadatas`: An array of document metadatas. The metadatas must be an array of key-value pairs.
 
@@ -436,55 +424,54 @@ To query a collection, you need to provide the following:
             ]
         );
     ```
-    - `whereDocument` (optional): The where clause to use to filter items based on their document. Here's an example:
-      ```php
-      $queryResponse = $collection->query(
-          queryEmbeddings: [
-              [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-          ],
-          nResults: 2,
-          whereDocument: [
-              'text' => 'This is a test document'
-          ]
-      );
+- `whereDocument` (optional): The where clause to use to filter items based on their document. Here's an example:
+  ```php
+  $queryResponse = $collection->query(
+      queryEmbeddings: [
+          [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+      ],
+      nResults: 2,
+      whereDocument: [
+          'text' => 'This is a test document'
+      ]
+  );
           
-      echo $queryResponse->ids[0][0]; // test1
-      ```
-      The where clause must be an array of key-value pairs. The key must be a string, and the value can be a string or
-      an array of valid filter values. In this case, only two filtering keys are supported - `$contains`
-      and `$not_contains`.
+  echo $queryResponse->ids[0][0]; // test1
+  ```
+  The where clause must be an array of key-value pairs. The key must be a string, and the value can be a string or
+  an array of valid filter values. In this case, only two filtering keys are supported - `$contains`
+  and `$not_contains`.
 
-      Here's an example:
-      ```php
-        $queryResponse = $collection->query(
-            queryEmbeddings: [
-                [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-            ],
-            nResults: 2,
-            whereDocument: [
-                'text' => [
-                    '$contains' => 'test document'
-                ]
+  Here's an example:
+  ```php
+    $queryResponse = $collection->query(
+        queryEmbeddings: [
+            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+        ],
+        nResults: 2,
+        whereDocument: [
+            'text' => [
+                '$contains' => 'test document'
             ]
-        );
-      ```
-    - `include` (optional): An array of fields to include in the response. Possible values
-      are `embeddings`, `documents`, `metadatas` and `distances`. It defaults to `embeddings`
-      and `metadatas` (`documents` are not included by default because they can be large).
-      ```php
-      $queryResponse = $collection->query(
-          queryEmbeddings: [
-              [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-          ],
-          nResults: 2,
-          include: ['embeddings']
-      );
-      ```
-      `distances` is only valid for querying and not for getting. It returns the distances between the query embeddings
-      and the embeddings of the results.
+        ]
+    );
+  ```
+- `include` (optional): An array of fields to include in the response. Possible values
+  are `embeddings`, `documents`, `metadatas` and `distances`. It defaults to `embeddings`
+  and `metadatas` (`documents` are not included by default because they can be large).
+  ```php
+  $queryResponse = $collection->query(
+      queryEmbeddings: [
+          [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+      ],
+      nResults: 2,
+      include: ['embeddings']
+  );
+  ```
+  `distances` is only valid for querying and not for getting. It returns the distances between the query embeddings
+  and the embeddings of the results.
 
-  Other relevant information about querying and retrieving a collection can be found in
-  the [ChromaDB Documentation](https://docs.trychroma.com/usage-guide).
+Other relevant information about querying and retrieving a collection can be found in the [ChromaDB Documentation](https://docs.trychroma.com/usage-guide).
 
 ### Deleting items in a collection
 
