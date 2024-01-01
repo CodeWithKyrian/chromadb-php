@@ -69,7 +69,7 @@ echo $queryResponse->ids[0][1]; // test2
 
 ## Requirements
 
-- PHP 8.1 or higher
+- PHP 8.0 or higher
 - ChromaDB 0.4.0 or higher running in client/server mode
 
 ## Running ChromaDB
