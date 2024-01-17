@@ -10,20 +10,15 @@ class ChromaException extends \Exception
 
     public static function throwSpecific(string $message, string $type, int $code)
     {
-        switch ($type) {
-            case 'NotFoundError':
-                throw new ChromaNotFoundException($message, $code);
-            case 'ValueError':
-                throw new ChromaValueException($message, $code);
-            case 'UniqueConstraintError':
-                throw new ChromaUniqueConstraintException($message, $code);
-            case 'DimensionalityError':
-                throw new ChromaDimensionalityException($message, $code);
-            case 'TypeError':
-                throw new ChromaTypeException($message, $code);
-            default:
-                throw new self($message, $code);
-        }
+        throw match ($type) {
+            'NotFoundError' => new ChromaNotFoundException($message, $code),
+            'ValueError' => new ChromaValueException($message, $code),
+            'UniqueConstraintError' => new ChromaUniqueConstraintException($message, $code),
+            'DimensionalityError' => new ChromaDimensionalityException($message, $code),
+            'InvalidCollection' => new ChromaInvalidCollectionException($message, $code),
+            'TypeError' => new ChromaTypeException($message, $code),
+            default => new self($message, $code),
+        };
     }
 
     public static function inferTypeFromMessage(string $message): string

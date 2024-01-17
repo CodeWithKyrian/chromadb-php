@@ -353,7 +353,6 @@ class CollectionResource
         bool   $requireEmbeddingsOrDocuments
     ): array
     {
-        $finalEmbeddings = [];
 
         if ($requireEmbeddingsOrDocuments) {
             if ($embeddings === null && $documents === null && $images === null) {
@@ -392,6 +391,14 @@ class CollectionResource
             $finalEmbeddings = $embeddings;
         }
 
+        $ids = array_map(function ($id) {
+            $id = (string)$id;
+            if ($id === '') {
+                throw new \InvalidArgumentException('Expected IDs to be non-empty strings');
+            }
+            return $id;
+        }, $ids);
+
         $uniqueIds = array_unique($ids);
         if (count($uniqueIds) !== count($ids)) {
             $duplicateIds = array_filter($ids, function ($id) use ($ids) {
@@ -399,6 +406,7 @@ class CollectionResource
             });
             throw new \InvalidArgumentException('Expected IDs to be unique, found duplicates for: ' . implode(', ', $duplicateIds));
         }
+
 
         return [
             'ids' => $ids,

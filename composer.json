@@ -1,6 +1,7 @@
 {
   "name": "codewithkyrian/chromadb-php",
   "description": "A PHP client for the Chroma Open Source Embedding Database",
+  "keywords": ["chromadb", "php", "embedding", "database", "vectors", "semantic", "search", "chroma", "open-source"],
   "type": "library",
   "license": "MIT",
   "require": {
