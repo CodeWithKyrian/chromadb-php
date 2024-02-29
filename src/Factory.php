@@ -34,10 +34,14 @@ class Factory
     protected string $tenant = 'default_tenant';
 
     /**
+     * The bearer token used for authentication.
+     */
+    protected string $bearerToken;
+
+    /**
      * The http client to use for the requests.
      */
     protected \GuzzleHttp\Client $httpClient;
-
 
     /**
      * The ChromaDB api provider for the instance.
@@ -81,6 +85,15 @@ class Factory
     }
 
     /**
+     * The bearer token used to authenticate requests.
+     */
+    public function withBearerToken(string $bearerToken): self
+    {
+        $this->bearerToken = $bearerToken;
+        return $this;
+    }
+
+    /**
      * The http client to use for the requests.
      */
     public function withHttpClient(\GuzzleHttp\Client $httpClient): self
@@ -100,12 +113,18 @@ class Factory
     {
         $this->baseUrl = $this->host . ':' . $this->port;
 
-        $this->httpClient ??=  new \GuzzleHttp\Client([
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ];
+
+        if (!empty($this->bearerToken)) {
+            $headers['Authorization'] = 'Bearer ' . $this->bearerToken;
+        }
+
+        $this->httpClient ??= new \GuzzleHttp\Client([
             'base_uri' => $this->baseUrl,
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json'
-            ],
+            'headers' => $headers,
         ]);
 
         return new ChromaApiClient($this->httpClient);
