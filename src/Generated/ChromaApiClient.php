@@ -318,7 +318,7 @@ class ChromaApiClient
 
     private function handleChromaApiException(\Exception|ClientExceptionInterface $e): void
     {
-        if ($e instanceof ServerException) {
+        if ($e instanceof ClientExceptionInterface) {
             $errorString = $e->getResponse()->getBody()->getContents();
 
             if (preg_match('/(?<={"\"error\"\:\")([^"]*)/', $errorString, $matches)) {
@@ -355,6 +355,11 @@ class ChromaApiClient
 
 
                     ChromaException::throwSpecific($message, $error_type, $e->getCode());
+                }
+
+                // If the structure is {'error': 'Error Type', 'message' : 'Error message'}
+                if (isset($error['error']) && isset($error['message'])) {
+                    ChromaException::throwSpecific($error['message'], $error['error'], $e->getCode());
                 }
 
                 // If the structure is 'error' => 'Collection not found'
