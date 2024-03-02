@@ -26,6 +26,7 @@ class ChromaException extends \Exception
     {
         return match (true) {
             str_contains($message, 'NotFoundError') => 'NotFoundError',
+            str_contains($message, 'AuthorizationError') => 'AuthorizationError',
             str_contains($message, 'UniqueConstraintError') => 'UniqueConstraintError',
             str_contains($message, 'ValueError') => 'ValueError',
             str_contains($message, 'dimensionality') => 'DimensionalityError',

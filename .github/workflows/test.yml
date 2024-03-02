@@ -15,10 +15,19 @@ jobs:
     name: Tests on PHP ${{ matrix.php }} - ${{ matrix.dependency-version }}
 
     services:
-      chroma:
+      chroma-wo-auth:
         image: chromadb/chroma
         ports:
           - 8000:8000
+
+      chroma-w-auth:
+        image: chromadb/chroma
+        ports:
+          - 8001:8000
+        env:
+          CHROMA_SERVER_AUTH_CREDENTIALS: 'test-token'
+          CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER: 'chromadb.auth.token.TokenConfigServerAuthCredentialsProvider'
+          CHROMA_SERVER_AUTH_PROVIDER: 'chromadb.auth.token.TokenAuthServerProvider'
 
     steps:
       - name: Checkout

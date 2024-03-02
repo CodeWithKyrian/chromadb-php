@@ -357,9 +357,14 @@ class ChromaApiClient
                     ChromaException::throwSpecific($message, $error_type, $e->getCode());
                 }
 
+                // If the structure is {'error': 'Error Type', 'message' : 'Error message'}
+                if (isset($error['error']) && isset($error['message'])) {
+                    ChromaException::throwSpecific($error['message'], $error['error'], $e->getCode());
+                }
+
                 // If the structure is 'error' => 'Collection not found'
                 if (isset($error['error'])) {
-                    $message = $error['message'] ?? $error['error'];
+                    $message = $error['error'];
                     $error_type = ChromaException::inferTypeFromMessage($message);
 
                     ChromaException::throwSpecific($message, $error_type, $e->getCode());
