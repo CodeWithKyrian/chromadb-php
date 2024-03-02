@@ -136,7 +136,7 @@ composer require codewithkyrian/chromadb-php
 ```php
 use Codewithkyrian\ChromaDB\ChromaDB;
 
-$chromaDB = ChromaDB::client();
+$chroma = ChromaDB::client();
 
 ```
 
@@ -147,7 +147,7 @@ factory method:
 ```php
 use Codewithkyrian\ChromaDB\ChromaDB;
 
-$chromaDB = ChromaDB::factory()
+$chroma = ChromaDB::factory()
                 ->withHost('http://localhost')
                 ->withPort(8000)
                 ->withDatabase('new_database')
@@ -156,6 +156,47 @@ $chromaDB = ChromaDB::factory()
 ```
 
 If the tenant or database doesn't exist, the package will automatically create them for you.
+
+### Authentication
+
+ChromaDB supports static token-based authentication. To use it, you need to start the Chroma server passing the required
+environment variables as stated in the documentation. If you're using the docker image, you can pass in the environment
+variables using the `--env` flag or by using a `.env` file and for the docker-compose file, you can use the `env_file`
+option, or pass in the environment variables directly like so:
+
+```yaml
+version: '3.9'
+  
+services:
+  chroma:
+    image: 'chromadb/chroma'
+    ports:
+      - '8000:8000'
+    environment:
+      - CHROMA_SERVER_AUTH_CREDENTIALS=test-token
+      - CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER=chromadb.auth.token.TokenConfigServerAuthCredentialsProvider
+      - CHROMA_SERVER_AUTH_PROVIDER=chromadb.auth.token.TokenAuthServerProvider
+      
+    ...
+```   
+    
+You can then connect to ChromaDB using the factory method:
+
+```php
+use Codewithkyrian\ChromaDB\ChromaDB;
+
+$chroma = ChromaDB::factory()
+                ->withAuthToken('test-token')
+                ->connect();                
+```
+
+### Getting the version
+
+```php
+
+echo $chroma->version(); // 0.4.0
+
+```
 
 ### Creating a Collection
 
