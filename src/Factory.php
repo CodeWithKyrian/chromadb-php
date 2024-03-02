@@ -36,7 +36,7 @@ class Factory
     /**
      * The bearer token used for authentication.
      */
-    protected string $bearerToken;
+    protected string $authToken;
 
     /**
      * The http client to use for the requests.
@@ -87,9 +87,9 @@ class Factory
     /**
      * The bearer token used to authenticate requests.
      */
-    public function withBearerToken(string $bearerToken): self
+    public function withAuthToken(string $authToken): self
     {
-        $this->bearerToken = $bearerToken;
+        $this->authToken = $authToken;
         return $this;
     }
 
@@ -118,8 +118,8 @@ class Factory
             'Accept' => 'application/json',
         ];
 
-        if (!empty($this->bearerToken)) {
-            $headers['Authorization'] = 'Bearer ' . $this->bearerToken;
+        if (!empty($this->authToken)) {
+            $headers['Authorization'] = 'Bearer ' . $this->authToken;
         }
 
         $this->httpClient ??= new \GuzzleHttp\Client([

@@ -24,7 +24,7 @@ it('can connect to a chroma server using factory', function () {
 test('can connect to an API token authenticated chroma server', function () {
     $client = ChromaDB::factory()
         ->withPort(8001)
-        ->withBearerToken('test-token')
+        ->withAuthToken('test-token')
         ->connect();
 
     expect($client)->toBeInstanceOf(Client::class);
@@ -33,7 +33,7 @@ test('can connect to an API token authenticated chroma server', function () {
 it('cannot connect to an API token authenticated chroma server with wrong token', function () {
     ChromaDB::factory()
         ->withPort(8001)
-        ->withBearerToken('wrong-token')
+        ->withAuthToken('wrong-token')
         ->connect();
 })->throws(ChromaAuthorizationException::class);
 
