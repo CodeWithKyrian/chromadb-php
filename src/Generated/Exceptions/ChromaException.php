@@ -12,6 +12,7 @@ class ChromaException extends \Exception
     {
         throw match ($type) {
             'NotFoundError' => new ChromaNotFoundException($message, $code),
+            'AuthorizationError' => new ChromaAuthorizationException($message, $code),
             'ValueError' => new ChromaValueException($message, $code),
             'UniqueConstraintError' => new ChromaUniqueConstraintException($message, $code),
             'DimensionalityError' => new ChromaDimensionalityException($message, $code),
