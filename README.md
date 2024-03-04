@@ -6,6 +6,10 @@
 [![GitHub Tests Action Status](https://github.com/CodeWithKyrian/chromadb-php/actions/workflows/test.yml/badge.svg)](https://github.com/CodeWithKyrian/chromadb-php/actions/workflows/test.yml)
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/codewithkyrian/chromadb-php.svg)](https://packagist.org/packages/codewithkyrian/chromadb-php)
 
+> **Note:** This package is framework-agnostic, and can be used in any PHP project. If you're using Laravel however, you
+> might want to check out the Laravel-specific package [here](https://github.com/CodeWithKyrian/chromadb-laravel) which
+> provides a more Laravel-like experience, and includes a few extra features.
+
 ## Description
 
 [Chroma](https://www.trychroma.com/) is an open-source vector database that allows you to store, search, and analyze high-dimensional data at scale.
