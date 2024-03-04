@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Codewithkyrian\ChromaDB\Client;
 use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaAuthorizationException;
+use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaConnectionException;
 
 it('can connect to a normal chroma server', function () {
     $client = ChromaDB::client();
@@ -42,3 +43,10 @@ it('throws exception when connecting to API token authenticated chroma server wi
         ->withPort(8001)
         ->connect();
 })->throws(ChromaAuthorizationException::class);
+
+it('throws a connection exception when connecting to a non-existent chroma server', function () {
+    ChromaDB::factory()
+        ->withHost('http://localhost')
+        ->withPort(8002)
+        ->connect();
+})->throws(ChromaConnectionException::class);
