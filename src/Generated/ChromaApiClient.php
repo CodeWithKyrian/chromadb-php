@@ -21,7 +21,7 @@ use Codewithkyrian\ChromaDB\Generated\Requests\UpdateEmbeddingRequest;
 use Codewithkyrian\ChromaDB\Generated\Responses\GetItemsResponse;
 use Codewithkyrian\ChromaDB\Generated\Responses\QueryItemsResponse;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ServerException;
+use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Client\ClientExceptionInterface;
 
 /**
@@ -318,7 +318,7 @@ class ChromaApiClient
 
     private function handleChromaApiException(\Exception|ClientExceptionInterface $e): void
     {
-        if ($e instanceof ClientExceptionInterface) {
+        if ($e instanceof RequestException) {
             $errorString = $e->getResponse()->getBody()->getContents();
 
             if (preg_match('/(?<={"\"error\"\:\")([^"]*)/', $errorString, $matches)) {
