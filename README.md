@@ -2,9 +2,10 @@
 
 **A PHP library for interacting with [Chroma](https://github.com/chroma-core/chroma) vector database seamlessly.**
 
+[![Total Downloads](https://img.shields.io/packagist/dt/codewithkyrian/chromadb-php.svg)](https://packagist.org/packages/codewithkyrian/chromadb-php)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/codewithkyrian/chromadb-php.svg)](https://packagist.org/packages/codewithkyrian/chromadb-php)
 [![MIT Licensed](https://img.shields.io/badge/license-mit-blue.svg)](https://github.com/CodeWithKyrian/chromadb-php/blob/main/LICENSE)
 [![GitHub Tests Action Status](https://github.com/CodeWithKyrian/chromadb-php/actions/workflows/test.yml/badge.svg)](https://github.com/CodeWithKyrian/chromadb-php/actions/workflows/test.yml)
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/codewithkyrian/chromadb-php.svg)](https://packagist.org/packages/codewithkyrian/chromadb-php)
 
 > **Note:** This package is framework-agnostic, and can be used in any PHP project. If you're using Laravel however, you
 > might want to check out the Laravel-specific package [here](https://github.com/CodeWithKyrian/chromadb-laravel) which
