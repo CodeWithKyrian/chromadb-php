@@ -28,9 +28,9 @@ class HuggingFaceEmbeddingServerFunction implements EmbeddingFunction
 
         try {
             $response = $client->post('embed', [
-                'body' => json_encode([
+                'json' => [
                     'inputs' => $texts,
-                ])
+                ]
             ]);
         } catch (GuzzleException $e) {
             throw new \RuntimeException('Failed to generate embeddings', 0, $e);
