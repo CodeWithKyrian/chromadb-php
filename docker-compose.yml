@@ -11,6 +11,5 @@ services:
     ports:
       - '8001:8000'
     environment:
-      CHROMA_SERVER_AUTH_CREDENTIALS: 'test-token'
-      CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER: 'chromadb.auth.token.TokenConfigServerAuthCredentialsProvider'
-      CHROMA_SERVER_AUTH_PROVIDER: 'chromadb.auth.token.TokenAuthServerProvider'
+      CHROMA_SERVER_AUTHN_CREDENTIALS: 'test-token'
+      CHROMA_SERVER_AUTHN_PROVIDER: 'chromadb.auth.token_authn.TokenAuthenticationServerProvider'
