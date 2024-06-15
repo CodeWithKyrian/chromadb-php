@@ -16,12 +16,12 @@ jobs:
 
     services:
       chroma-wo-auth:
-        image: chromadb/chroma
+        image: chromadb/chroma:0.5.0
         ports:
           - 8000:8000
 
       chroma-w-auth:
-        image: chromadb/chroma
+        image: chromadb/chroma:0.5.0
         ports:
           - 8001:8000
         env:
