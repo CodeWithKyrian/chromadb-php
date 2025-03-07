@@ -205,7 +205,7 @@ class CollectionResource
      */
     public function peek(
         int $limit = 10,
-        array $include = null
+        ?array $include = null
     ): GetItemsResponse
     {
         $include ??= ['embeddings', 'metadatas', 'distances'];
@@ -275,13 +275,13 @@ class CollectionResource
      *
      */
     public function query(
-        array $queryEmbeddings = null,
-        array $queryTexts = null,
-        array $queryImages = null,
+        ?array $queryEmbeddings = null,
+        ?array $queryTexts = null,
+        ?array $queryImages = null,
         int   $nResults = 10,
-        array $where = null,
-        array $whereDocument = null,
-        array $include = null
+        ?array $where = null,
+        ?array $whereDocument = null,
+        ?array $include = null
     ): QueryItemsResponse
     {
         $include ??= ['embeddings', 'metadatas', 'distances'];
