@@ -12,7 +12,7 @@ class ValidationException extends \Exception
         string                 $message,
         public readonly string $type,
         int                    $code = 422,
-        \Throwable             $previous = null)
+        \Throwable|null        $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
