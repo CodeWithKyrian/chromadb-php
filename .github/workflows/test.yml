@@ -16,17 +16,18 @@ jobs:
 
     services:
       chroma-wo-auth:
-        image: chromadb/chroma:0.5.0
+        image: chromadb/chroma:1.0.8
         ports:
           - 8000:8000
 
       chroma-w-auth:
-        image: chromadb/chroma:0.5.0
+        image: chromadb/chroma:1.0.8
         ports:
           - 8001:8000
         env:
           CHROMA_SERVER_AUTHN_CREDENTIALS: 'test-token'
           CHROMA_SERVER_AUTHN_PROVIDER: 'chromadb.auth.token_authn.TokenAuthenticationServerProvider'
+          CHROMA_AUTH_TOKEN_TRANSPORT_HEADER: 'Authorization'
 
     steps:
       - name: Checkout
