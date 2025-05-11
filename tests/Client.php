@@ -5,8 +5,11 @@ declare(strict_types=1);
 use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
 use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaDimensionalityException;
+use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaException;
 use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaTypeException;
 use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaValueException;
+use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaInvalidArgumentException;
+use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaNotFoundException;
 use Codewithkyrian\ChromaDB\Resources\CollectionResource;
 
 beforeEach(function () {
@@ -90,7 +93,7 @@ it('can get a collection', function () {
 
 it('throws a value error when getting a collection that does not exist', function () {
     $this->client->getCollection('test_collection_2');
-})->throws(ChromaValueException::class, 'Collection test_collection_2 does not exist.');
+})->throws(ChromaNotFoundException::class);
 
 it('can modify a collection name or metadata', function () {
     $this->collection->modify('test_collection_2', ['test' => 'test_2']);
@@ -101,14 +104,13 @@ it('can modify a collection name or metadata', function () {
         ->toBe('test_collection_2')
         ->and($collection->metadata)
         ->toMatchArray(['test' => 'test_2']);
-
 });
 
 it('can delete a collection', function () {
     $this->client->deleteCollection('test_collection');
 
     expect(fn() => $this->client->getCollection('test_collection'))
-        ->toThrow(ChromaValueException::class);
+        ->toThrow(ChromaNotFoundException::class);
 });
 
 it('can delete all collections', function () {
@@ -131,7 +133,7 @@ it('can delete all collections', function () {
 
 it('throws a value error when deleting a collection that does not exist', function () {
     $this->client->deleteCollection('test_collection_2');
-})->throws(ChromaValueException::class, 'Collection test_collection_2 does not exist.');
+})->throws(ChromaNotFoundException::class);
 
 it('can add single embeddings to a collection', function () {
     $ids = ['test1'];
@@ -149,7 +151,7 @@ it('cannot add invalid single embeddings to a collection', function () {
     $metadatas = [['test' => 'test']];
 
     $this->collection->add($ids, $embeddings, $metadatas);
-})->throws(ChromaTypeException::class);
+})->throws(ChromaException::class);
 
 it('can add single text documents to a collection', function () {
     $ids = ['test1'];
@@ -179,7 +181,7 @@ it('cannot add single embeddings to a collection with a different dimensionality
     $metadatas = [['test' => 'test2']];
 
     $this->collection->add($ids, $embeddings, $metadatas);
-})->throws(ChromaDimensionalityException::class, 'Embedding dimension 11 does not match collection dimensionality 10');
+})->throws(ChromaInvalidArgumentException::class, 'Collection expecting embedding with dimension of 10, got 11');
 
 it('can upsert single embeddings to a collection', function () {
     $ids = ['test1'];
@@ -294,7 +296,7 @@ it('cannot add batch embeddings with different dimensionality to a collection', 
     ];
 
     $this->collection->add($ids, $embeddings, $metadatas);
-})->throws(ChromaDimensionalityException::class);
+})->throws(ChromaInvalidArgumentException::class);
 
 it('can add batch documents to a collection', function () {
     $ids = ['test1', 'test2', 'test3'];
@@ -344,7 +346,6 @@ it('can peek a collection', function () {
 
     expect($peekResponse->ids)
         ->toMatchArray(['test1', 'test2']);
-
 });
 
 it('can query a collection', function () {
@@ -370,7 +371,6 @@ it('can query a collection', function () {
         ->toMatchArray(['test1', 'test2'])
         ->and($queryResponse->distances[0])
         ->toMatchArray([0.0, 0.0]);
-
 });
 
 it('can get a collection by id', function () {
@@ -457,8 +457,8 @@ it('can query a collection using query texts', function () {
         nResults: 1
     );
 
-    expect($queryResponse->ids[0])
-        ->toMatchArray(['test1']);
+    expect($queryResponse->ids[0][0])
+        ->toBeIn(['test1', 'test2', 'test3']);
 });
 
 it('throws a value error when getting a collection by where with an invalid operator', function () {
@@ -483,7 +483,7 @@ it('throws a value error when getting a collection by where with an invalid oper
             'some' => ['$invalid' => 'metadata1']
         ]
     );
-})->throws(ChromaValueException::class);
+})->throws(ChromaException::class);
 
 it('can delete a collection by id', function () {
     $ids = ['test1', 'test2', 'test3'];

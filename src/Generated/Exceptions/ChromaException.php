@@ -18,6 +18,7 @@ class ChromaException extends \Exception
             'DimensionalityError' => new ChromaDimensionalityException($message, $code),
             'InvalidCollection' => new ChromaInvalidCollectionException($message, $code),
             'TypeError' => new ChromaTypeException($message, $code),
+            'InvalidArgumentError' => new ChromaInvalidArgumentException($message, $code),
             default => new self($message, $code),
         };
     }
