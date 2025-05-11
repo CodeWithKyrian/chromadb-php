@@ -1,15 +1,16 @@
-version: '3.9'
+version: "3.9"
 
 services:
   chroma_wo_auth:
-    image: 'chromadb/chroma:0.5.0'
+    image: "chromadb/chroma:1.0.8"
     ports:
-      - '8000:8000'
+      - "8000:8000"
 
   chroma_w_auth:
-    image: 'chromadb/chroma:0.5.0'
+    image: "chromadb/chroma:1.0.8"
     ports:
-      - '8001:8000'
+      - "8001:8000"
     environment:
-      CHROMA_SERVER_AUTHN_CREDENTIALS: 'test-token'
-      CHROMA_SERVER_AUTHN_PROVIDER: 'chromadb.auth.token_authn.TokenAuthenticationServerProvider'
+      CHROMA_SERVER_AUTHN_CREDENTIALS: "authToken"
+      CHROMA_SERVER_AUTHN_PROVIDER: "chromadb.auth.token_authn.TokenAuthenticationServerProvider"
+      CHROMA_AUTH_TOKEN_TRANSPORT_HEADER: "Authorization"

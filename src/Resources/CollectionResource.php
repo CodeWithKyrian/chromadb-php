@@ -55,9 +55,7 @@ class CollectionResource
          */
         public readonly ChromaApiClient    $apiClient,
 
-    )
-    {
-    }
+    ) {}
 
     public static function make(Collection $collection, string $database, string $tenant, ?EmbeddingFunction $embeddingFunction, ChromaApiClient $apiClient): self
     {
@@ -88,8 +86,7 @@ class CollectionResource
         ?array $metadatas = null,
         ?array $documents = null,
         ?array $images = null
-    ): void
-    {
+    ): void {
         $validated = $this->validate(
             ids: $ids,
             embeddings: $embeddings,
@@ -109,7 +106,7 @@ class CollectionResource
         );
 
 
-        $this->apiClient->add($this->id, $request);
+        $this->apiClient->add($this->id, $this->database, $this->tenant, $request);
     }
 
 
@@ -129,8 +126,7 @@ class CollectionResource
         ?array $metadatas = null,
         ?array $documents = null,
         ?array $images = null
-    )
-    {
+    ) {
         $validated = $this->validate(
             ids: $ids,
             embeddings: $embeddings,
@@ -148,7 +144,7 @@ class CollectionResource
             images: $validated['images'],
         );
 
-        $this->apiClient->update($this->id, $request);
+        $this->apiClient->update($this->id, $this->database, $this->tenant, $request);
     }
 
     /**
@@ -167,8 +163,7 @@ class CollectionResource
         ?array $metadatas = null,
         ?array $documents = null,
         ?array $images = null
-    ): void
-    {
+    ): void {
         $validated = $this->validate(
             ids: $ids,
             embeddings: $embeddings,
@@ -186,7 +181,7 @@ class CollectionResource
             images: $validated['images'],
         );
 
-        $this->apiClient->upsert($this->id, $request);
+        $this->apiClient->upsert($this->id, $this->database, $this->tenant, $request);
     }
 
     /**
@@ -194,7 +189,7 @@ class CollectionResource
      */
     public function count(): int
     {
-        return $this->apiClient->count($this->id);
+        return $this->apiClient->count($this->id, $this->database, $this->tenant);
     }
 
     /**
@@ -206,8 +201,7 @@ class CollectionResource
     public function peek(
         int $limit = 10,
         ?array $include = null
-    ): GetItemsResponse
-    {
+    ): GetItemsResponse {
         $include ??= ['embeddings', 'metadatas', 'distances'];
 
         $request = new GetEmbeddingRequest(
@@ -215,7 +209,7 @@ class CollectionResource
             include: $include,
         );
 
-        return $this->apiClient->get($this->id, $request);
+        return $this->apiClient->get($this->id, $this->database, $this->tenant, $request);
     }
 
     /**
@@ -235,8 +229,7 @@ class CollectionResource
         ?int   $limit = null,
         ?int   $offset = null,
         ?array $include = null
-    ): GetItemsResponse
-    {
+    ): GetItemsResponse {
         $include ??= ['embeddings', 'metadatas', 'distances'];
 
         $request = new GetEmbeddingRequest(
@@ -248,7 +241,7 @@ class CollectionResource
             include: $include,
         );
 
-        return $this->apiClient->get($this->id, $request);
+        return $this->apiClient->get($this->id, $this->database, $this->tenant, $request);
     }
 
     /**
@@ -266,7 +259,7 @@ class CollectionResource
             whereDocument: $whereDocument,
         );
 
-        $this->apiClient->delete($this->id, $request);
+        $this->apiClient->delete($this->id, $this->database, $this->tenant, $request);
     }
 
     /**
@@ -282,8 +275,7 @@ class CollectionResource
         ?array $where = null,
         ?array $whereDocument = null,
         ?array $include = null
-    ): QueryItemsResponse
-    {
+    ): QueryItemsResponse {
         $include ??= ['embeddings', 'metadatas', 'distances'];
 
         if (
@@ -323,8 +315,7 @@ class CollectionResource
             include: $include,
         );
 
-        return $this->apiClient->getNearestNeighbors($this->id, $request);
-
+        return $this->apiClient->getNearestNeighbors($this->id, $this->database, $this->tenant, $request);
     }
 
 
@@ -335,7 +326,7 @@ class CollectionResource
     {
         $request = new UpdateCollectionRequest($name, $metadata);
 
-        $this->apiClient->updateCollection($this->id, $request);
+        $this->apiClient->updateCollection($this->id, $this->database, $this->tenant, $request);
     }
 
     /**
@@ -351,8 +342,7 @@ class CollectionResource
         ?array $documents,
         ?array $images,
         bool   $requireEmbeddingsOrDocuments
-    ): array
-    {
+    ): array {
 
         if ($requireEmbeddingsOrDocuments) {
             if ($embeddings === null && $documents === null && $images === null) {
@@ -415,7 +405,5 @@ class CollectionResource
             'documents' => $documents,
             'images' => $images,
         ];
-
-
     }
 }
