@@ -39,6 +39,12 @@ class Factory
     protected string $authToken;
 
     /**
+     * The API key used to authenticate requests to Chroma Cloud.
+     * This will be sent as the X-CHROMA-TOKEN header.
+     */
+    protected ?string $chromaApiKey = null;
+
+    /**
      * The http client to use for the requests.
      */
     protected \GuzzleHttp\Client $httpClient;
@@ -94,6 +100,16 @@ class Factory
     }
 
     /**
+     * The API key used to authenticate requests to Chroma Cloud.
+     * This will be sent as the X-CHROMA-TOKEN header.
+     */
+    public function withChromaApiKey(string $apiKey): self
+    {
+        $this->chromaApiKey = $apiKey;
+        return $this;
+    }
+
+    /**
      * The http client to use for the requests.
      */
     public function withHttpClient(\GuzzleHttp\Client $httpClient): self
@@ -120,6 +136,10 @@ class Factory
 
         if (!empty($this->authToken)) {
             $headers['Authorization'] = 'Bearer ' . $this->authToken;
+        }
+
+        if (!empty($this->chromaApiKey)) {
+            $headers['X-CHROMA-TOKEN'] = $this->chromaApiKey;
         }
 
         $this->httpClient ??= new \GuzzleHttp\Client([

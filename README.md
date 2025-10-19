@@ -81,7 +81,6 @@ echo $queryResponse->ids[0][1]; // test2
 
 In order to use this library, you need to have ChromaDB running somewhere. You can either run it locally or in the
 cloud.
-(Chroma doesn't support cloud yet, but it will soon.)
 
 For now, ChromaDB can only run in-memory in Python. You can however run it in client/server mode by either running the
 python
@@ -164,10 +163,14 @@ If the tenant or database doesn't exist, the package will automatically create t
 
 ### Authentication
 
-ChromaDB supports static token-based authentication. To use it, you need to start the Chroma server passing the required
-environment variables as stated in the documentation. If you're using the docker image, you can pass in the environment
-variables using the `--env` flag or by using a `.env` file and for the docker-compose file, you can use the `env_file`
-option, or pass in the environment variables directly like so:
+ChromaDB supports multiple authentication methods.
+
+#### Self-Hosted (Static Token)
+
+For self-hosted instances, you can use static token-based authentication. You need to start the Chroma server passing
+the required environment variables as stated in the documentation. If you're using the docker image, you can pass in the
+environment variables using the `--env` flag or by using a `.env` file and for the docker-compose file, you can use the
+env_file option, or pass in the environment variables directly like so:
 
 ```yaml
 version: '3.9'
@@ -194,6 +197,22 @@ $chroma = ChromaDB::factory()
                 ->connect();                
 ```
 
+#### Chroma Cloud
+
+To authenticate with [Chroma Cloud](https://www.trychroma.com/cloud), you must provide your API key using the `withChromaApiKey()` method. This will
+correctly send the key in the `X-CHROMA-TOKEN` header.
+
+You also need to set the host to your Chroma Cloud instance URL and the port to 443 (if you want to use TLS).
+
+```php
+use Codewithkyrian\ChromaDB\ChromaDB;
+
+$chroma = ChromaDB::factory()
+    ->withHost('https://api.trychroma.com')
+    ->withPort(443)
+    ->withChromaApiKey('your-chroma-cloud-api-key')
+    ->connect();
+```
 ### Getting the version
 
 ```php
