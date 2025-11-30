@@ -154,4 +154,9 @@ class Client
             $this->deleteCollection($collection->name);
         }
     }
+
+    public function reset(): bool
+    {
+        return $this->api->reset();
+    }
 }

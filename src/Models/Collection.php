@@ -388,7 +388,6 @@ class Collection
             throw new \InvalidArgumentException('Expected IDs to be unique, found duplicates for: ' . implode(', ', $duplicateIds));
         }
 
-
         return [
             'ids' => $ids,
             'embeddings' => $finalEmbeddings,

@@ -6,9 +6,36 @@ namespace Codewithkyrian\ChromaDB;
 
 class ChromaDB
 {
+    /**
+     * @deprecated Use ChromaDB::local()->connect() or ChromaDB::factory()->connect() instead.
+     */
     public static function client(): Client
     {
         return self::factory()->connect();
+    }
+
+    /**
+     * Creates a new factory instance configured for a local/self-hosted ChromaDB instance.
+     */
+    public static function local(
+        string $host = 'http://localhost',
+        ?int $port = 8000,
+        ?string $tenant = null,
+        ?string $database = null
+    ): Factory {
+        $factory = self::factory()
+            ->withHost($host)
+            ->withPort($port);
+
+        if ($tenant) {
+            $factory->withTenant($tenant);
+        }
+
+        if ($database) {
+            $factory->withDatabase($database);
+        }
+
+        return $factory;
     }
 
     /**
@@ -26,7 +53,7 @@ class ChromaDB
     {
         $factory = self::factory()
             ->withHost('https://api.trychroma.com')
-            ->withPort(8000)
+            ->withPort(null)
             ->withHeader('X-Chroma-Token', $apiKey);
 
         if ($tenant) {
@@ -38,14 +65,5 @@ class ChromaDB
         }
 
         return $factory;
-    }
-
-    /**
-     * Resets the database. This will delete all collections and entries and
-     * return true if the database was reset successfully.
-     */
-    public static function reset(): bool
-    {
-        return (new Factory())->createApi()->reset();
     }
 }

@@ -11,11 +11,6 @@ use Http\Discovery\Psr18ClientDiscovery;
 class Factory
 {
     /**
-     * The base url for the ChromaDB server.
-     */
-    protected string $baseUrl;
-
-    /**
      * The host where the ChromaDB server is running.
      */
     protected string $host = 'http://localhost';
@@ -23,7 +18,7 @@ class Factory
     /**
      * The port to send requests to.
      */
-    protected int $port = 8000;
+    protected ?int $port = 8000;
 
     /**
      * The database to use for the instance.
@@ -43,11 +38,6 @@ class Factory
     protected array $headers = [];
 
     /**
-     * The ChromaDB api provider for the instance.
-     */
-    protected Api $api;
-
-    /**
      * The url of the client to use for the requests.
      */
     public function withHost(string $host): self
@@ -59,7 +49,7 @@ class Factory
     /**
      * The port of the client to use for the requests.
      */
-    public function withPort(int $port): self
+    public function withPort(?int $port): self
     {
         $this->port = $port;
         return $this;
@@ -115,25 +105,20 @@ class Factory
 
     public function connect(): Client
     {
-        $this->api = $this->createApi();
-
-        return new Client($this->api, $this->database, $this->tenant);
-    }
-
-    public function createApi(): Api
-    {
-        $this->baseUrl = "$this->host:$this->port";
+        $baseUrl = $this->port ? "$this->host:$this->port" : $this->host;
 
         $httpClient = Psr18ClientDiscovery::find();
         $requestFactory = Psr17FactoryDiscovery::findRequestFactory();
         $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
 
-        return new Api(
+        $api = new Api(
             $httpClient,
             $requestFactory,
             $streamFactory,
-            $this->baseUrl,
+            $baseUrl,
             $this->headers
         );
+
+        return new Client($api, $this->database, $this->tenant);
     }
 }
