@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require '../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Embeddings\JinaEmbeddingFunction;
@@ -13,18 +13,22 @@ $chroma = ChromaDB::factory()
     ->withTenant('test_tenant')
     ->connect();
 
-$chroma->deleteAllCollections();
-
 $embeddingFunction = new OllamaEmbeddingFunction();
 
-$collection = $chroma->createCollection(
+$collection = $chroma->getCollection(
     name: 'test_collection',
     embeddingFunction: $embeddingFunction
 );
 
+$items = [
+    ["id" => 1, "content" => "He seems very happy" ],
+    ["id" => 2, "content"=> "He was very sad when we last talked"],
+    ["id" => 3, "content"=> "She made him angry"],
+];
+
 $collection->add(
-    ids: ['1', '2', '3'],
-    documents: ['He seems very happy', 'He was very sad when we last talked', 'She made him angry']
+    ids: array_column($items, 'id'),
+    documents: array_column($items, 'content')
 );
 
 $queryResponse = $collection->query(
