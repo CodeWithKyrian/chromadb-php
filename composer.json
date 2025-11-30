@@ -1,7 +1,17 @@
 {
   "name": "codewithkyrian/chromadb-php",
   "description": "A PHP client for the Chroma Open Source Embedding Database",
-  "keywords": ["chromadb", "php", "embedding", "database", "vectors", "semantic", "search", "chroma", "open-source"],
+  "keywords": [
+    "chromadb",
+    "php",
+    "embedding",
+    "database",
+    "vectors",
+    "semantic",
+    "search",
+    "chroma",
+    "open-source"
+  ],
   "type": "library",
   "license": "MIT",
   "require": {
@@ -11,11 +21,17 @@
   "require-dev": {
     "pestphp/pest": "^2.19",
     "symfony/var-dumper": "^6.3",
-    "mockery/mockery": "^1.6"
+    "mockery/mockery": "^1.6",
+    "symfony/process": "^7.4"
   },
   "autoload": {
     "psr-4": {
       "Codewithkyrian\\ChromaDB\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Codewithkyrian\\ChromaDB\\Tests\\": "tests/"
     }
   },
   "authors": [

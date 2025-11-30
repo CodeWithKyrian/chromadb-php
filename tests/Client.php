@@ -13,6 +13,8 @@ use Codewithkyrian\ChromaDB\Exceptions\ChromaNotFoundException;
 use Codewithkyrian\ChromaDB\Models\Collection;
 
 beforeEach(function () {
+    // $this->chromaServer->start();
+
     $this->client = ChromaDB::factory()
         ->withDatabase('test_database')
         ->withTenant('test_tenant')
