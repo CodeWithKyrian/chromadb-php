@@ -19,7 +19,7 @@ class ChromaServer
             return;
         }
 
-        $command = ['chroma', 'run', '--port', (string)$port];
+        $command = ['chroma', 'run', '--port', (string)$port, '--path', '.chroma'];
         
         self::$process = new Process($command, env: [
             'IS_PERSISTENT' => false,

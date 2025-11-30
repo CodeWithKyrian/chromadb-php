@@ -7,3 +7,4 @@
 *.swo
 playground/*
 .idea
+.chroma

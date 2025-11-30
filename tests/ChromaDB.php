@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-use Codewithkyrian\ChromaDB\Client;
 use Codewithkyrian\ChromaDB\ChromaDB;
+use Codewithkyrian\ChromaDB\Client;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaConnectionException;
+use Codewithkyrian\ChromaDB\Factory;
 
 it('can connect to a normal chroma server', function () {
     $client = ChromaDB::client();
@@ -27,3 +28,35 @@ it('throws a connection exception when connecting to a non-existent chroma serve
         ->withPort(8002)
         ->connect();
 })->throws(ChromaConnectionException::class);
+
+it('can create a cloud factory', function () {
+    $factory = ChromaDB::cloud('test-api-key');
+
+    expect($factory)->toBeInstanceOf(Factory::class);
+
+    $reflection = new ReflectionClass($factory);
+    $host = $reflection->getProperty('host')->getValue($factory);
+    $port = $reflection->getProperty('port')->getValue($factory);
+    $headers = $reflection->getProperty('headers')->getValue($factory);
+
+    expect($host)->toBe('https://api.trychroma.com')
+        ->and($port)->toBeNull()
+        ->and($headers)->toBe(['X-Chroma-Token' => 'test-api-key']);
+});
+
+it('can create a local factory', function () {
+    $factory = ChromaDB::local('http://custom-host', 1234, 'test-tenant', 'test-db');
+
+    expect($factory)->toBeInstanceOf(Factory::class);
+
+    $reflection = new ReflectionClass($factory);
+    $host = $reflection->getProperty('host')->getValue($factory);
+    $port = $reflection->getProperty('port')->getValue($factory);
+    $tenant = $reflection->getProperty('tenant')->getValue($factory);
+    $database = $reflection->getProperty('database')->getValue($factory);
+
+    expect($host)->toBe('http://custom-host')
+        ->and($port)->toBe(1234)
+        ->and($tenant)->toBe('test-tenant')
+        ->and($database)->toBe('test-db');
+});

@@ -31,7 +31,7 @@ ChromaDB PHP provides a simple and intuitive interface for interacting with Chro
 ```php
 use Codewithkyrian\ChromaDB\ChromaDB;
 
-$chromaDB = ChromaDB::client();
+$chromaDB = ChromaDB::local()->connect();
 
 // Check current ChromaDB version
 echo $chromaDB->version();
@@ -81,11 +81,28 @@ echo $queryResponse->ids[0][1]; // test2
 
 In order to use this library, you need to have ChromaDB running somewhere. You can either run it locally or in the
 cloud.
-(Chroma doesn't support cloud yet, but it will soon.)
 
-For now, ChromaDB can only run in-memory in Python. You can however run it in client/server mode by either running the
-python
-project or using the docker image (recommended).
+### Local
+
+You can run ChromaDB locally using the Chroma CLI or Docker.
+
+#### Chroma CLI
+
+You can install the Chroma CLI globally using cURL:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/chroma-core/chroma/main/rust/cli/install/install.sh | bash
+```
+
+And then run the server:
+
+```bash
+chroma run --path /path/to/data
+```
+
+For more installation options and usage details, check the [Chroma CLI Installation Docs](https://docs.trychroma.com/docs/cli/install) and [Run Docs](https://docs.trychroma.com/docs/cli/run).
+
+#### Docker
 
 To run the docker image, you can use the following command:
 
@@ -128,6 +145,11 @@ ChromaDB.)
 
 Either way, you can now access ChromaDB at `http://localhost:8000`.
 
+### Chroma Cloud
+
+You can sign up for the hosted version of ChromaDB at [Chroma Cloud](https://trychroma.com/). Once you have an account,
+you can create a new project and get your API key.
+
 ## Installation
 
 ```bash
@@ -138,67 +160,95 @@ composer require codewithkyrian/chromadb-php
 
 ### Connecting to ChromaDB
 
+#### Local Instance
+
 ```php
 use Codewithkyrian\ChromaDB\ChromaDB;
 
-$chroma = ChromaDB::client();
+$chroma = ChromaDB::local()->connect();
 
 ```
 
 By default, ChromaDB will try to connect to `http://localhost:8000` using the default database name `default_database`
-and default tenant name `default_tenant`. You can however change these values by constructing the client using the
-factory method:
+and default tenant name `default_tenant`. You can however change these values by passing them to the `local` method:
 
 ```php
 use Codewithkyrian\ChromaDB\ChromaDB;
 
-$chroma = ChromaDB::factory()
-                ->withHost('http://localhost')
-                ->withPort(8000)
-                ->withDatabase('new_database')
-                ->withTenant('new_tenant')
-                ->connect();                
+$chroma = ChromaDB::local(
+    host: 'http://localhost',
+    port: 8000,
+    tenant: 'new_tenant',
+    database: 'new_database'
+)->connect();    
+
+$chroma = ChromaDB::local(port: 8030)->connect();   
 ```
 
-If the tenant or database doesn't exist, the package will automatically create them for you.
+#### Chroma Cloud
 
-### Authentication
-
-ChromaDB supports static token-based authentication. To use it, you need to start the Chroma server passing the required
-environment variables as stated in the documentation. If you're using the docker image, you can pass in the environment
-variables using the `--env` flag or by using a `.env` file and for the docker-compose file, you can use the `env_file`
-option, or pass in the environment variables directly like so:
-
-```yaml
-version: '3.9'
-  
-services:
-  chroma:
-    image: 'chromadb/chroma'
-    ports:
-      - '8000:8000'
-    environment:
-      - CHROMA_SERVER_AUTHN_CREDENTIALS=test-token
-      - CHROMA_SERVER_AUTHN_PROVIDER=chromadb.auth.token_authn.TokenAuthenticationServerProvider
-      
-    ...
-```   
-    
-You can then connect to ChromaDB using the factory method:
+To connect to Chroma Cloud, you can use the `cloud` method and pass in your API key:
 
 ```php
 use Codewithkyrian\ChromaDB\ChromaDB;
 
-$chroma = ChromaDB::factory()
-                ->withAuthToken('test-token')
-                ->connect();                
+$chroma = ChromaDB::cloud('your-api-key')->connect();
+```
+
+You can also specify the tenant and database if needed:
+
+```php
+use Codewithkyrian\ChromaDB\ChromaDB;
+
+$chroma = ChromaDB::cloud(
+    apiKey: 'your-api-key',
+    tenant: 'new_tenant',
+    database: 'new_database'
+)->connect();
+```
+
+### Configuring the Connection
+
+Both `ChromaDB::local()` and `ChromaDB::cloud()` return a `Factory` instance. This allows you to configure the connection further before establishing it.
+
+#### Setting Host and Port
+
+You can override the host and port using `withHost()` and `withPort()`:
+
+```php
+$chroma = ChromaDB::local()
+    ->withHost('http://custom-host')
+    ->withPort(8080)
+    ->connect();
+```
+
+#### Setting Database and Tenant
+
+You can specify the database and tenant using `withDatabase()` and `withTenant()`:
+
+```php
+$chroma = ChromaDB::local()
+    ->withDatabase('my_db')
+    ->withTenant('my_tenant')
+    ->connect();
+```
+
+#### Adding Custom Headers
+
+You can add custom headers to your requests using `withHeader()` or `withHeaders()`. This is useful for passing authentication tokens or other metadata required by your proxy or server.
+
+```php
+$chroma = ChromaDB::local()
+    ->withHeader('Authorization', 'Bearer my-token')
+    ->withHeaders(['X-Custom-Header' => 'custom-value'])
+    ->connect();
 ```
 
 ### Getting the version
 
 ```php
 
-echo $chroma->version(); // 0.4.0
+echo $chroma->version();
 
 ```
 
@@ -564,10 +614,11 @@ $chroma->deleteCollection('test_collection');
 
 ## Testing
 
-```
-// Run chroma by running the docker compose file in the repo
-docker compose up -d
+## Testing
 
+To run the tests, make sure you have the Chroma CLI installed and globally accessible. The tests will automatically start the server on port 8000.
+
+```bash
 composer test
 ```
 
