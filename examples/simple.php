@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require './vendor/autoload.php';
+require '../vendor/autoload.php';
 
 use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Embeddings\JinaEmbeddingFunction;
@@ -21,7 +21,6 @@ $collection = $chroma->createCollection(
     name: 'test_collection',
     embeddingFunction: $embeddingFunction
 );
-
 
 $collection->add(
     ids: ['1', '2', '3'],
