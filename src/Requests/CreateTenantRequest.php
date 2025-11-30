@@ -3,15 +3,13 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Requests;
+namespace Codewithkyrian\ChromaDB\Requests;
 
 class CreateTenantRequest
 {
     public function __construct(
         public readonly string $name,
-    )
-    {
-    }
+    ) {}
 
     public static function create(array $data): self
     {

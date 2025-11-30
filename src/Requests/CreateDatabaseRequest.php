@@ -3,22 +3,15 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Models;
+namespace Codewithkyrian\ChromaDB\Requests;
 
-class Tenant
+class CreateDatabaseRequest
 {
     public function __construct(
-        /**
-         * Name of the tenant.
-         *
-         * @var string
-         */
         public readonly string $name,
-    )
-    {
-    }
+    ) {}
 
-    public static function make(array $data): self
+    public static function create(array $data): self
     {
         return new self(
             name: $data['name'],

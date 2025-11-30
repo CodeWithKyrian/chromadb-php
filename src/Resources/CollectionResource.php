@@ -6,16 +6,16 @@ declare(strict_types=1);
 namespace Codewithkyrian\ChromaDB\Resources;
 
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
-use Codewithkyrian\ChromaDB\Generated\ChromaApiClient;
-use Codewithkyrian\ChromaDB\Generated\Models\Collection;
-use Codewithkyrian\ChromaDB\Generated\Requests\AddEmbeddingRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\DeleteEmbeddingRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\GetEmbeddingRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\QueryEmbeddingRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\UpdateCollectionRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\UpdateEmbeddingRequest;
-use Codewithkyrian\ChromaDB\Generated\Responses\GetItemsResponse;
-use Codewithkyrian\ChromaDB\Generated\Responses\QueryItemsResponse;
+use Codewithkyrian\ChromaDB\Api;
+use Codewithkyrian\ChromaDB\Models\Collection;
+use Codewithkyrian\ChromaDB\Requests\AddEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\DeleteEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\GetEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\QueryEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\UpdateCollectionRequest;
+use Codewithkyrian\ChromaDB\Requests\UpdateEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Responses\GetItemsResponse;
+use Codewithkyrian\ChromaDB\Responses\QueryItemsResponse;
 
 class CollectionResource
 {
@@ -53,11 +53,11 @@ class CollectionResource
         /**
          * The Chroma API client.
          */
-        public readonly ChromaApiClient    $apiClient,
+        public readonly Api    $apiClient,
 
     ) {}
 
-    public static function make(Collection $collection, string $database, string $tenant, ?EmbeddingFunction $embeddingFunction, ChromaApiClient $apiClient): self
+    public static function make(Collection $collection, string $database, string $tenant, ?EmbeddingFunction $embeddingFunction, Api $apiClient): self
     {
         return new self(
             name: $collection->name,

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Requests;
+namespace Codewithkyrian\ChromaDB\Requests;
 
 /**
  * Request model for get items from collection.
@@ -23,39 +23,37 @@ class GetEmbeddingRequest
          *
          * @var array<string, mixed>
          */
-        public readonly ?array $where= null,
+        public readonly ?array $where = null,
 
         /**
          * Optional where clause to filter items by.
          *
          * @var array<string, mixed>
          */
-        public readonly ?array $whereDocument= null,
+        public readonly ?array $whereDocument = null,
 
         /**
          * Sort items.
          */
-        public readonly ?string $sort= null,
+        public readonly ?string $sort = null,
 
         /**
          * Optional limit on the number of items to get.
          */
-        public readonly ?int $limit= null,
+        public readonly ?int $limit = null,
 
         /**
          * Optional offset on the number of items to get.
          */
-        public readonly ?int $offset= null,
+        public readonly ?int $offset = null,
 
         /**
          * Optional list of items to include in the response.
          *
          * @var string[]
          */
-        public readonly ?array $include= null,
-    )
-    {
-    }
+        public readonly ?array $include = null,
+    ) {}
 
     public static function create(array $data): self
     {

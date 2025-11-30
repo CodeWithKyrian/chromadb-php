@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Requests;
+namespace Codewithkyrian\ChromaDB\Requests;
 
 class UpdateCollectionRequest
 {
@@ -20,9 +20,7 @@ class UpdateCollectionRequest
          */
         public readonly ?array $newMetadata,
 
-    )
-    {
-    }
+    ) {}
 
     public static function create(array $data): self
     {

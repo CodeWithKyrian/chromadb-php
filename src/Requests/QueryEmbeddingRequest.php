@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Requests;
+namespace Codewithkyrian\ChromaDB\Requests;
 
 class QueryEmbeddingRequest
 {
@@ -40,9 +40,7 @@ class QueryEmbeddingRequest
          * @var string[]
          */
         public readonly ?array $include,
-    )
-    {
-    }
+    ) {}
 
     public static function create(array $data): self
     {

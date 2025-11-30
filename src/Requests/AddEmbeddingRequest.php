@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Requests;
+namespace Codewithkyrian\ChromaDB\Requests;
 
 /**
  * Request model for adding items to collection.
@@ -41,9 +41,7 @@ class AddEmbeddingRequest
 
         public readonly ?array $images,
 
-    )
-    {
-    }
+    ) {}
 
     public static function create(array $data): self
     {

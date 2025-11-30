@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaDimensionalityException;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaException;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaTypeException;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaValueException;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaInvalidArgumentException;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaNotFoundException;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaDimensionalityException;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaException;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaTypeException;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaValueException;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaInvalidArgumentException;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaNotFoundException;
 use Codewithkyrian\ChromaDB\Resources\CollectionResource;
 
 beforeEach(function () {

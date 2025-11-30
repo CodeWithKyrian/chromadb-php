@@ -13,7 +13,7 @@ class ChromaDB
     }
 
     /**
-     * Creates a new factory instance to configure a custom Alchemy Client
+     * Creates a new factory instance to configure a custom ChromaDB Client
      */
     public static function factory(): Factory
     {
@@ -24,8 +24,8 @@ class ChromaDB
      * Resets the database. This will delete all collections and entries and
      * return true if the database was reset successfully.
      */
-    public static function reset() : bool
+    public static function reset(): bool
     {
-        return (new Factory())->createApiClient()->reset();
+        return (new Factory())->createApi()->reset();
     }
 }
