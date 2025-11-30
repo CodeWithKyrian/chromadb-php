@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Codewithkyrian\ChromaDB;
 
-
 class ChromaDB
 {
     public static function client(): Client

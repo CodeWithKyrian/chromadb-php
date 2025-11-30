@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 namespace Codewithkyrian\ChromaDB\Requests;
 
-class DeleteEmbeddingRequest
+class DeleteItemsRequest
 {
     /**
      * @param string[] $ids Optional IDs of the items to delete.

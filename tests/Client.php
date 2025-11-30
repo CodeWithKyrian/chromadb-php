@@ -10,7 +10,7 @@ use Codewithkyrian\ChromaDB\Exceptions\ChromaTypeException;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaValueException;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaInvalidArgumentException;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaNotFoundException;
-use Codewithkyrian\ChromaDB\Resources\CollectionResource;
+use Codewithkyrian\ChromaDB\Models\Collection;
 
 beforeEach(function () {
     $this->client = ChromaDB::factory()
@@ -73,13 +73,13 @@ it('can create or get collections', function () {
     $collection = $this->client->getOrCreateCollection('test_collection');
 
     expect($collection)
-        ->toBeInstanceOf(CollectionResource::class)
+        ->toBeInstanceOf(Collection::class)
         ->toHaveProperty('name', 'test_collection');
 
     $collection = $this->client->getOrCreateCollection('test_collection_2');
 
     expect($collection)
-        ->toBeInstanceOf(CollectionResource::class)
+        ->toBeInstanceOf(Collection::class)
         ->toHaveProperty('name', 'test_collection_2');
 });
 
@@ -87,7 +87,7 @@ it('can get a collection', function () {
     $collection = $this->client->getCollection('test_collection');
 
     expect($collection)
-        ->toBeInstanceOf(CollectionResource::class)
+        ->toBeInstanceOf(Collection::class)
         ->toHaveProperty('name', 'test_collection');
 });
 

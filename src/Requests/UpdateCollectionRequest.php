@@ -8,27 +8,27 @@ namespace Codewithkyrian\ChromaDB\Requests;
 class UpdateCollectionRequest
 {
     /**
-     * @param mixed $newName New name of the collection.
-     * @param mixed $newMetadata New metadata of the collection.
+     * @param string|null $name New name of the collection.
+     * @param array<string,mixed>|null $metadata New metadata of the collection.
      */
     public function __construct(
-        public readonly ?string $newName,
-        public readonly ?array $newMetadata,
+        public readonly ?string $name,
+        public readonly ?array $metadata,
     ) {}
 
     public static function create(array $data): self
     {
         return new self(
-            newName: $data['new_name'] ?? null,
-            newMetadata: $data['new_metadata'] ?? null,
+            name: $data['new_name'] ?? null,
+            metadata: $data['new_metadata'] ?? null,
         );
     }
 
     public function toArray(): array
     {
         return array_filter([
-            'new_name' => $this->newName,
-            'new_metadata' => $this->newMetadata,
+            'new_name' => $this->name,
+            'new_metadata' => $this->metadata,
         ]);
     }
 }

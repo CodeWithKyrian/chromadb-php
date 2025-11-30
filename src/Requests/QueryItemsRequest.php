@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 namespace Codewithkyrian\ChromaDB\Requests;
 
-class QueryEmbeddingRequest
+class QueryItemsRequest
 {
     /**
      * @param array<string, string> $where Optional query condition to filter results based on metadata values.
