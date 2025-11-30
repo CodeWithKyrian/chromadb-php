@@ -7,19 +7,13 @@ namespace Codewithkyrian\ChromaDB\Requests;
 
 class UpdateCollectionRequest
 {
+    /**
+     * @param mixed $newName New name of the collection.
+     * @param mixed $newMetadata New metadata of the collection.
+     */
     public function __construct(
-        /**
-         * New name of the collection.
-         */
         public readonly ?string $newName,
-
-        /**
-         * New metadata of the collection.
-         *
-         * @var array<string, string>
-         */
         public readonly ?array $newMetadata,
-
     ) {}
 
     public static function create(array $data): self

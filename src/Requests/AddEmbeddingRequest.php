@@ -10,35 +10,18 @@ namespace Codewithkyrian\ChromaDB\Requests;
  */
 class AddEmbeddingRequest
 {
+    /**
+     * @param float[][] $embeddings Optional embeddings of the items to add.
+     * @param array<array<string, string>> $metadatas Optional metadatas of the items to add.
+     * @param string[] $ids IDs of the items to add.
+     * @param string[] $documents Optional documents of the items to add.
+     * @param string[] $images Optional images of the items to add.
+     */
     public function __construct(
-        /**
-         * Optional embeddings of the items to add.
-         *
-         * @var float[][]
-         */
         public readonly ?array $embeddings,
-
-        /**
-         * Optional metadatas of the items to add.
-         *
-         * @var array<array<string, string>>
-         */
         public readonly ?array $metadatas,
-
-        /**
-         * IDs of the items to add.
-         *
-         * @var string[]
-         */
         public readonly array $ids,
-
-        /**
-         * Optional documents of the items to add.
-         *
-         * @var string[]
-         */
         public readonly ?array $documents,
-
         public readonly ?array $images,
 
     ) {}

@@ -7,38 +7,18 @@ namespace Codewithkyrian\ChromaDB\Requests;
 
 class QueryEmbeddingRequest
 {
+    /**
+     * @param array<string, string> $where Optional query condition to filter results based on metadata values.
+     * @param array<string, mixed> $whereDocument Optional query condition to filter results based on document content.
+     * @param float[][] $queryEmbeddings Optional query condition to filter results based on embedding content.
+     * @param int $nResults Optional number of results to return. Defaults to 10.
+     * @param string[] $include Optional list of items to include in the response.
+     */
     public function __construct(
-        /**
-         * Optional query condition to filter results based on metadata values.
-         *
-         * @var array<string, string>
-         */
         public readonly ?array $where,
-
-        /**
-         * Optional query condition to filter results based on document content.
-         *
-         * @var array<string, mixed>
-         */
         public readonly ?array $whereDocument,
-
-        /**
-         * Optional query condition to filter results based on embedding content.
-         *
-         * @var float[][]
-         */
         public readonly ?array $queryEmbeddings,
-
-        /**
-         * Optional number of results to return. Defaults to 10.
-         */
         public readonly ?int   $nResults,
-
-        /**
-         * Optional list of items to include in the response.
-         *
-         * @var string[]
-         */
         public readonly ?array $include,
     ) {}
 
