@@ -2,52 +2,51 @@
 
 declare(strict_types=1);
 
-
 namespace Codewithkyrian\ChromaDB\Embeddings;
 
-use GuzzleHttp\Client;
+use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 
 class OllamaEmbeddingFunction implements EmbeddingFunction
 {
-    private Client $client;
+    private ClientInterface $httpClient;
+    private RequestFactoryInterface $requestFactory;
+    private StreamFactoryInterface $streamFactory;
 
     public function __construct(
-        public readonly string $baseUrl = 'http://localhost:11434',
-        public readonly string $model = 'all-minilm',
-    )
-    {
-        $this->client = new Client([
-            'base_uri' => $this->baseUrl,
-            'headers' => [
-                'Content-Type' => 'application/json',
-            ]
-        ]);
+        private readonly string $baseUrl = 'http://localhost:11434',
+        private readonly string $model = 'all-minilm',
+    ) {
+        $this->httpClient = Psr18ClientDiscovery::find();
+        $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
+        $this->streamFactory = Psr17FactoryDiscovery::findStreamFactory();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function generate(array $texts): array
     {
-        try {
-            $embeddings = [];
+        $embeddings = [];
 
-            foreach ($texts as $text) {
-                $response = $this->client->post('api/embeddings', [
-                    'json' => [
-                        'prompt' => $text,
-                        'model' => $this->model,
-                    ]
-                ]);
+        foreach ($texts as $text) {
+            $request = $this->requestFactory->createRequest('POST', $this->baseUrl . '/api/embeddings')
+                ->withHeader('Content-Type', 'application/json');
 
-                $result = json_decode($response->getBody()->getContents(), true);
+            $body = $this->streamFactory->createStream(json_encode([
+                'prompt' => $text,
+                'model' => $this->model,
+            ]));
 
-                $embeddings[] = $result['embedding'];
-            }
+            $request = $request->withBody($body);
 
-            return $embeddings;
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Failed to generate embeddings', 0, $e);
+            $response = $this->httpClient->sendRequest($request);
+            $result = json_decode($response->getBody()->getContents(), true);
+
+            $embeddings[] = $result['embedding'];
         }
+
+        return $embeddings;
     }
 }

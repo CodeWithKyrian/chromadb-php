@@ -6,27 +6,25 @@ declare(strict_types=1);
 namespace Codewithkyrian\ChromaDB\Embeddings;
 
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
-use Psr\Http\Client\ClientExceptionInterface;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 
 class JinaEmbeddingFunction implements EmbeddingFunction
 {
-    private Client $client;
+    private ClientInterface $httpClient;
+    private RequestFactoryInterface $requestFactory;
+    private StreamFactoryInterface $streamFactory;
 
     public function __construct(
-        public readonly string $apiKey,
-        public readonly string $model = 'jina-embeddings-v2-base-en',
-    )
-    {
-        $this->client = new Client([
-            'base_uri' => 'https://api.jina.ai/v1/',
-            'headers' => [
-                'Authorization' => "Bearer $this->apiKey",
-                'Content-Type' => 'application/json',
-                'Accept-Encoding' => 'identity',
-            ]
-        ]);
+        private readonly string $apiKey,
+        private readonly string $model = 'jina-embeddings-v2-base-en'
+    ) {
+        $this->httpClient = Psr18ClientDiscovery::find();
+        $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
+        $this->streamFactory = Psr17FactoryDiscovery::findStreamFactory();
     }
 
     /**
@@ -34,21 +32,20 @@ class JinaEmbeddingFunction implements EmbeddingFunction
      */
     public function generate(array $texts): array
     {
-        try {
-            $response = $this->client->post('embeddings', [
-                'json' => [
-                    'model' => $this->model,
-                    'input' => $texts,
-                ]
-            ]);
+        $request = $this->requestFactory->createRequest('POST', 'https://api.jina.ai/v1/embeddings')
+            ->withHeader('Authorization', 'Bearer ' . $this->apiKey)
+            ->withHeader('Content-Type', 'application/json');
 
-            $result = json_decode($response->getBody()->getContents(), true);
-            $embeddings = $result['data'];
-            usort($embeddings, fn($a, $b) => $a['index'] <=> $b['index']);
+        $body = $this->streamFactory->createStream(json_encode([
+            'model' => $this->model,
+            'input' => $texts,
+        ]));
 
-            return array_map(fn($embedding) => $embedding['embedding'], $embeddings);
-        } catch (ClientExceptionInterface $e) {
-            throw new \RuntimeException("Error calling Jina AI API: {$e->getMessage()}", 0, $e);
-        }
+        $request = $request->withBody($body);
+
+        $response = $this->httpClient->sendRequest($request);
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        return array_map(fn($item) => $item['embedding'], $data['data']);
     }
 }

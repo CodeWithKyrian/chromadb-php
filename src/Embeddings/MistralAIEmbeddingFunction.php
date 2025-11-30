@@ -5,29 +5,26 @@ declare(strict_types=1);
 
 namespace Codewithkyrian\ChromaDB\Embeddings;
 
-use GuzzleHttp\Client;
-use Psr\Http\Client\ClientExceptionInterface;
+use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 
 class MistralAIEmbeddingFunction implements EmbeddingFunction
 {
-    private Client $client;
+    private ClientInterface $httpClient;
+    private RequestFactoryInterface $requestFactory;
+    private StreamFactoryInterface $streamFactory;
 
     public function __construct(
-        public readonly string $apiKey,
-        public readonly string $organization = '',
-        public readonly string $model = 'mistral-embed',
-    )
-    {
-        $headers = [
-            'Authorization' => "Bearer $this->apiKey",
-            'Content-Type' => 'application/json',
-        ];
-
-
-        $this->client = new Client([
-            'base_uri' => 'https://api.mistral.ai/v1/',
-            'headers' => $headers
-        ]);
+        private readonly string $apiKey,
+        private readonly string $model = 'mistral-embed'
+    ) {
+        $this->httpClient = Psr18ClientDiscovery::find();
+        $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
+        $this->streamFactory = Psr17FactoryDiscovery::findStreamFactory();
     }
 
     /**
@@ -35,21 +32,20 @@ class MistralAIEmbeddingFunction implements EmbeddingFunction
      */
     public function generate(array $texts): array
     {
-        try {
-            $response = $this->client->post('embeddings', [
-                'json' => [
-                    'model' => $this->model,
-                    'input' => $texts,
-                ]
-            ]);
+        $request = $this->requestFactory->createRequest('POST', 'https://api.mistral.ai/v1/embeddings')
+            ->withHeader('Authorization', 'Bearer ' . $this->apiKey)
+            ->withHeader('Content-Type', 'application/json');
 
-            $result = json_decode($response->getBody()->getContents(), true);
-            $embeddings = $result['data'];
-            usort($embeddings, fn($a, $b) => $a['index'] <=> $b['index']);
+        $body = $this->streamFactory->createStream(json_encode([
+            'model' => $this->model,
+            'input' => $texts,
+        ]));
 
-            return array_map(fn($embedding) => $embedding['embedding'], $embeddings);
-        } catch (ClientExceptionInterface $e) {
-            throw new \RuntimeException("Error calling MistralAI API: {$e->getMessage()}", 0, $e);
-        }
+        $request = $request->withBody($body);
+
+        $response = $this->httpClient->sendRequest($request);
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        return array_map(fn($item) => $item['embedding'], $data['data']);
     }
 }

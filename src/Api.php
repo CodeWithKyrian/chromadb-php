@@ -22,10 +22,11 @@ use Codewithkyrian\ChromaDB\Requests\UpdateItemsRequest;
 use Codewithkyrian\ChromaDB\Requests\UpdateTenantRequest;
 use Codewithkyrian\ChromaDB\Responses\GetItemsResponse;
 use Codewithkyrian\ChromaDB\Responses\QueryItemsResponse;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 
 /**
  * Client for ChromaDB API
@@ -33,7 +34,11 @@ use Psr\Http\Client\ClientExceptionInterface;
 class Api
 {
     public function __construct(
-        public readonly Client $httpClient,
+        public readonly ClientInterface $httpClient,
+        public readonly RequestFactoryInterface $requestFactory,
+        public readonly StreamFactoryInterface $streamFactory,
+        public readonly string $baseUri,
+        public readonly array $headers = [],
     ) {}
 
     /**
@@ -41,11 +46,7 @@ class Api
      */
     public function getUserIdentity(): array
     {
-        try {
-            $response = $this->httpClient->get('/api/v2/auth/identity');
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', '/api/v2/auth/identity');
 
         return json_decode($response->getBody()->getContents(), true);
     }
@@ -59,11 +60,7 @@ class Api
      */
     public function getCollectionByCrn(string $crn, string $database, string $tenant): Collection
     {
-        try {
-            $response = $this->httpClient->get("/api/v2/collections/{$crn}");
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', "/api/v2/collections/{$crn}");
 
         return Collection::make(json_decode($response->getBody()->getContents(), true), $this, $database, $tenant);
     }
@@ -73,11 +70,7 @@ class Api
      */
     public function healthcheck(): array
     {
-        try {
-            $response = $this->httpClient->get('/api/v2/healthcheck');
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', '/api/v2/healthcheck');
 
         return json_decode($response->getBody()->getContents(), true);
     }
@@ -87,11 +80,7 @@ class Api
      */
     public function heartbeat(): array
     {
-        try {
-            $response = $this->httpClient->get('/api/v2/heartbeat');
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', '/api/v2/heartbeat');
 
         return json_decode($response->getBody()->getContents(), true);
     }
@@ -101,11 +90,7 @@ class Api
      */
     public function preFlightChecks(): mixed
     {
-        try {
-            $response = $this->httpClient->get('/api/v2/pre-flight-checks');
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', '/api/v2/pre-flight-checks');
 
         return json_decode($response->getBody()->getContents(), true);
     }
@@ -115,11 +100,7 @@ class Api
      */
     public function reset(): bool
     {
-        try {
-            $response = $this->httpClient->post('/api/v2/reset');
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('POST', '/api/v2/reset');
 
         return json_decode($response->getBody()->getContents(), true);
     }
@@ -129,11 +110,7 @@ class Api
      */
     public function version(): string
     {
-        try {
-            $response = $this->httpClient->get('/api/v2/version');
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', '/api/v2/version');
 
         return json_decode($response->getBody()->getContents(), true);
     }
@@ -143,13 +120,9 @@ class Api
      */
     public function createTenant(CreateTenantRequest $request): void
     {
-        try {
-            $this->httpClient->post('/api/v2/tenants', [
-                'json' => $request->toArray(),
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $this->sendRequest('POST', '/api/v2/tenants', [
+            'json' => $request->toArray(),
+        ]);
     }
 
     /**
@@ -157,11 +130,7 @@ class Api
      */
     public function getTenant(string $tenant): ?Tenant
     {
-        try {
-            $response = $this->httpClient->get("/api/v2/tenants/$tenant");
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', "/api/v2/tenants/$tenant");
 
         $result = json_decode($response->getBody()->getContents(), true);
 
@@ -173,13 +142,9 @@ class Api
      */
     public function updateTenant(string $tenant, UpdateTenantRequest $request): void
     {
-        try {
-            $this->httpClient->put("/api/v2/tenants/$tenant", [
-                'json' => $request->toArray(),
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $this->sendRequest('PUT', "/api/v2/tenants/$tenant", [
+            'json' => $request->toArray(),
+        ]);
     }
 
     /**
@@ -190,13 +155,9 @@ class Api
      */
     public function createDatabase(string $tenant, CreateDatabaseRequest $request): void
     {
-        try {
-            $this->httpClient->post("/api/v2/tenants/$tenant/databases", [
-                'json' => $request->toArray()
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $this->sendRequest('POST', "/api/v2/tenants/$tenant/databases", [
+            'json' => $request->toArray()
+        ]);
     }
 
     /**
@@ -210,16 +171,12 @@ class Api
      */
     public function listDatabases(string $tenant, ?int $limit = null, ?int $offset = null): array
     {
-        try {
-            $response = $this->httpClient->get("/api/v2/tenants/$tenant/databases", [
-                'query' => [
-                    'limit' => $limit,
-                    'offset' => $offset,
-                ],
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', "/api/v2/tenants/$tenant/databases", [
+            'query' => [
+                'limit' => $limit,
+                'offset' => $offset,
+            ],
+        ]);
 
         $result = json_decode($response->getBody()->getContents(), true);
 
@@ -236,11 +193,7 @@ class Api
      */
     public function getDatabase(string $database, string $tenant): Database
     {
-        try {
-            $response = $this->httpClient->get("/api/v2/tenants/$tenant/databases/$database");
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', "/api/v2/tenants/$tenant/databases/$database");
 
         $result = json_decode($response->getBody()->getContents(), true);
 
@@ -255,11 +208,7 @@ class Api
      */
     public function deleteDatabase(string $database, string $tenant): void
     {
-        try {
-            $this->httpClient->delete("/api/v2/tenants/$tenant/databases/$database");
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $this->sendRequest('DELETE', "/api/v2/tenants/$tenant/databases/$database");
     }
 
     /**
@@ -274,16 +223,12 @@ class Api
      */
     public function listCollections(string $database, string $tenant, ?int $limit = null, ?int $offset = null): array
     {
-        try {
-            $response = $this->httpClient->get("/api/v2/tenants/$tenant/databases/$database/collections", [
-                'query' => [
-                    'limit' => $limit,
-                    'offset' => $offset,
-                ],
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', "/api/v2/tenants/$tenant/databases/$database/collections", [
+            'query' => [
+                'limit' => $limit,
+                'offset' => $offset,
+            ],
+        ]);
 
         $result = json_decode($response->getBody()->getContents(), true);
 
@@ -301,13 +246,9 @@ class Api
      */
     public function createCollection(string $database, string $tenant, CreateCollectionRequest $request): Collection
     {
-        try {
-            $response = $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections", [
-                'json' => $request->toArray()
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('POST', "/api/v2/tenants/$tenant/databases/$database/collections", [
+            'json' => $request->toArray()
+        ]);
 
         $result = json_decode($response->getBody()->getContents(), true);
 
@@ -325,11 +266,7 @@ class Api
      */
     public function getCollection(string $collectionId, string $database, string $tenant): Collection
     {
-        try {
-            $response = $this->httpClient->get("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId");
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId");
 
         $result = json_decode($response->getBody()->getContents(), true);
 
@@ -346,13 +283,9 @@ class Api
      */
     public function updateCollection(string $collectionId, string $database, string $tenant, UpdateCollectionRequest $request): void
     {
-        try {
-            $this->httpClient->put("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId", [
-                'json' => $request->toArray(),
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $this->sendRequest('PUT', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId", [
+            'json' => $request->toArray(),
+        ]);
     }
 
     /**
@@ -364,11 +297,7 @@ class Api
      */
     public function deleteCollection(string $collectionId, string $database, string $tenant): void
     {
-        try {
-            $this->httpClient->delete("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId");
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $this->sendRequest('DELETE', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId");
     }
 
     /**
@@ -381,11 +310,7 @@ class Api
      */
     public function countCollections(string $database, string $tenant): int
     {
-        try {
-            $response = $this->httpClient->get("/api/v2/tenants/$tenant/databases/$database/collections_count");
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', "/api/v2/tenants/$tenant/databases/$database/collections_count");
 
         return json_decode($response->getBody()->getContents(), true);
 
@@ -401,13 +326,9 @@ class Api
      */
     public function addCollectionItems(string $collectionId, string $database, string $tenant, AddItemsRequest $request): void
     {
-        try {
-            $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/add", [
-                'json' => $request->toArray(),
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $this->sendRequest('POST', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/add", [
+            'json' => $request->toArray(),
+        ]);
     }
 
     /**
@@ -421,11 +342,7 @@ class Api
      */
     public function countCollectionItems(string $collectionId, string $database, string $tenant): int
     {
-        try {
-            $response = $this->httpClient->get("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/count");
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('GET', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/count");
 
         return json_decode($response->getBody()->getContents(), true);
     }
@@ -440,13 +357,9 @@ class Api
      */
     public function updateCollectionItems(string $collectionId, string $database, string $tenant, UpdateItemsRequest $request): void
     {
-        try {
-            $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/update", [
-                'json' => $request->toArray(),
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $this->sendRequest('POST', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/update", [
+            'json' => $request->toArray(),
+        ]);
     }
 
     /**
@@ -459,13 +372,9 @@ class Api
      */
     public function upsertCollectionItems(string $collectionId, string $database, string $tenant, AddItemsRequest $request): void
     {
-        try {
-            $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/upsert", [
-                'json' => $request->toArray(),
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $this->sendRequest('POST', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/upsert", [
+            'json' => $request->toArray(),
+        ]);
     }
 
     /**
@@ -480,13 +389,9 @@ class Api
      */
     public function getCollectionItems(string $collectionId, string $database, string $tenant, GetEmbeddingRequest $request): GetItemsResponse
     {
-        try {
-            $response = $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/get", [
-                'json' => $request->toArray(),
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('POST', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/get", [
+            'json' => $request->toArray(),
+        ]);
 
         $result = json_decode($response->getBody()->getContents(), true);
 
@@ -503,13 +408,9 @@ class Api
      */
     public function deleteCollectionItems(string $collectionId, string $database, string $tenant, DeleteItemsRequest $request): void
     {
-        try {
-            $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/delete", [
-                'json' => $request->toArray(),
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $this->sendRequest('POST', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/delete", [
+            'json' => $request->toArray(),
+        ]);
     }
 
     /**
@@ -524,13 +425,9 @@ class Api
      */
     public function queryCollectionItems(string $collectionId, string $database, string $tenant, QueryItemsRequest $request): QueryItemsResponse
     {
-        try {
-            $response = $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/query", [
-                'json' => $request->toArray(),
-            ]);
-        } catch (ClientExceptionInterface $e) {
-            $this->handleChromaApiException($e);
-        }
+        $response = $this->sendRequest('POST', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/query", [
+            'json' => $request->toArray(),
+        ]);
 
         $result = json_decode($response->getBody()->getContents(), true);
 
@@ -538,76 +435,99 @@ class Api
     }
 
 
-    private function handleChromaApiException(\Exception|ClientExceptionInterface $e): void
+    private function handleErrorResponse(ResponseInterface $response): void
     {
-        if ($e instanceof ConnectException) {
-            $context = $e->getHandlerContext();
-            $message = $context['error'] ?? $e->getMessage();
-            $code = $context['errno'] ?? $e->getCode();
-            throw new ChromaConnectionException($message, $code);
+        $statusCode = $response->getStatusCode();
+
+        if ($statusCode === 401 || $statusCode === 403) {
+            throw new ChromaAuthorizationException($response->getReasonPhrase(), $statusCode);
         }
 
-        if ($e instanceof RequestException) {
-            if ($e->hasResponse()) {
-                $statusCode = $e->getResponse()->getStatusCode();
-                if ($statusCode === 401 || $statusCode === 403) {
-                    throw new ChromaAuthorizationException($e->getMessage(), $statusCode);
-                }
-            }
+        $errorString = $response->getBody()->getContents();
 
-            $errorString = $e->getResponse()->getBody()->getContents();
+        if (preg_match('/(?<={"\"error\"\:\")([^"]*)/', $errorString, $matches)) {
+            $errorString = $matches[1];
+        }
 
-            if (preg_match('/(?<={"\"error\"\:\")([^"]*)/', $errorString, $matches)) {
-                $errorString = $matches[1];
-            }
+        $error = json_decode($errorString, true);
 
-            $error = json_decode($errorString, true);
+        if ($error !== null) {
 
-            if ($error !== null) {
+            // If the structure is 'error' => 'NotFoundError("Collection not found")'
+            if (preg_match(
+                '/^(?P<error_type>\w+)\((?P<message>.*)\)$/',
+                $error['error'] ?? '',
+                $matches
+            )) {
+                if (isset($matches['message'])) {
+                    $error_type = $matches['error_type'] ?? 'UnknownError';
+                    $message = $matches['message'];
 
-                // If the structure is 'error' => 'NotFoundError("Collection not found")'
-                if (preg_match(
-                    '/^(?P<error_type>\w+)\((?P<message>.*)\)$/',
-                    $error['error'] ?? '',
-                    $matches
-                )) {
-                    if (isset($matches['message'])) {
-                        $error_type = $matches['error_type'] ?? 'UnknownError';
-                        $message = $matches['message'];
-
-                        // Remove trailing and leading quotes
-                        if (str_starts_with($message, "'") && str_ends_with($message, "'")) {
-                            $message = substr($message, 1, -1);
-                        }
-
-                        ChromaException::throwSpecific($message, $error_type, $e->getCode());
+                    // Remove trailing and leading quotes
+                    if (str_starts_with($message, "'") && str_ends_with($message, "'")) {
+                        $message = substr($message, 1, -1);
                     }
+
+                    ChromaException::throwSpecific($message, $error_type, $statusCode);
                 }
+            }
 
-                // If the structure is 'detail' => 'Collection not found'
-                if (isset($error['detail'])) {
-                    $message = $error['detail'];
-                    $error_type = ChromaException::inferTypeFromMessage($message);
+            // If the structure is 'detail' => 'Collection not found'
+            if (isset($error['detail'])) {
+                $message = $error['detail'];
+                $error_type = ChromaException::inferTypeFromMessage($message);
 
 
-                    ChromaException::throwSpecific($message, $error_type, $e->getCode());
-                }
+                ChromaException::throwSpecific($message, $error_type, $statusCode);
+            }
 
-                // If the structure is {'error': 'Error Type', 'message' : 'Error message'}
-                if (isset($error['error']) && isset($error['message'])) {
-                    ChromaException::throwSpecific($error['message'], $error['error'], $e->getCode());
-                }
+            // If the structure is {'error': 'Error Type', 'message' : 'Error message'}
+            if (isset($error['error']) && isset($error['message'])) {
+                ChromaException::throwSpecific($error['message'], $error['error'], $statusCode);
+            }
 
-                // If the structure is 'error' => 'Collection not found'
-                if (isset($error['error'])) {
-                    $message = $error['error'];
-                    $error_type = ChromaException::inferTypeFromMessage($message);
+            // If the structure is 'error' => 'Collection not found'
+            if (isset($error['error'])) {
+                $message = $error['error'];
+                $error_type = ChromaException::inferTypeFromMessage($message);
 
-                    ChromaException::throwSpecific($message, $error_type, $e->getCode());
-                }
+                ChromaException::throwSpecific($message, $error_type, $statusCode);
             }
         }
 
-        throw new ChromaException($e->getMessage(), $e->getCode());
+        throw new ChromaException($errorString ?: $response->getReasonPhrase(), $statusCode);
+    }
+
+    private function sendRequest(string $method, string $path, array $options = []): ResponseInterface
+    {
+        $uri = $this->baseUri . $path;
+        if (isset($options['query'])) {
+            $uri .= '?' . http_build_query($options['query']);
+        }
+
+        $request = $this->requestFactory->createRequest($method, $uri)
+            ->withHeader('Content-Type', 'application/json')
+            ->withHeader('Accept', 'application/json');
+
+        foreach ($this->headers as $name => $value) {
+            $request = $request->withHeader($name, $value);
+        }
+
+        if (isset($options['json'])) {
+            $body = $this->streamFactory->createStream(json_encode($options['json']));
+            $request = $request->withBody($body);
+        }
+
+        try {
+            $response = $this->httpClient->sendRequest($request);
+        } catch (ClientExceptionInterface $e) {
+            throw new ChromaConnectionException($e->getMessage(), $e->getCode());
+        }
+
+        if ($response->getStatusCode() >= 400) {
+            $this->handleErrorResponse($response);
+        }
+
+        return $response;
     }
 }

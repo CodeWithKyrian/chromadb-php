@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Codewithkyrian\ChromaDB;
 
 use Codewithkyrian\ChromaDB\Api;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
 
 class Factory
 {
@@ -34,14 +36,11 @@ class Factory
     protected string $tenant = 'default_tenant';
 
     /**
-     * The bearer token used for authentication.
+     * The headers to be sent with the requests.
+     *
+     * @var array<string, string>
      */
-    protected string $authToken;
-
-    /**
-     * The http client to use for the requests.
-     */
-    protected \GuzzleHttp\Client $httpClient;
+    protected array $headers = [];
 
     /**
      * The ChromaDB api provider for the instance.
@@ -86,19 +85,31 @@ class Factory
 
     /**
      * The bearer token used to authenticate requests.
+     * 
+     * @deprecated Use withHeader('X-Chroma-Token', $authToken) instead.
      */
     public function withAuthToken(string $authToken): self
     {
-        $this->authToken = $authToken;
+        return $this->withHeader('X-Chroma-Token', $authToken);
+    }
+
+    /**
+     * Add a header to the requests.
+     */
+    public function withHeader(string $name, string $value): self
+    {
+        $this->headers[$name] = $value;
         return $this;
     }
 
     /**
-     * The http client to use for the requests.
+     * Add multiple headers to the requests.
+     * 
+     * @param array<string, string> $headers
      */
-    public function withHttpClient(\GuzzleHttp\Client $httpClient): self
+    public function withHeaders(array $headers): self
     {
-        $this->httpClient = $httpClient;
+        $this->headers = array_merge($this->headers, $headers);
         return $this;
     }
 
@@ -111,22 +122,18 @@ class Factory
 
     public function createApi(): Api
     {
-        $this->baseUrl = $this->host . ':' . $this->port;
+        $this->baseUrl = "$this->host:$this->port";
 
-        $headers = [
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-        ];
+        $httpClient = Psr18ClientDiscovery::find();
+        $requestFactory = Psr17FactoryDiscovery::findRequestFactory();
+        $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
 
-        if (!empty($this->authToken)) {
-            $headers['Authorization'] = 'Bearer ' . $this->authToken;
-        }
-
-        $this->httpClient ??= new \GuzzleHttp\Client([
-            'base_uri' => $this->baseUrl,
-            'headers' => $headers,
-        ]);
-
-        return new Api($this->httpClient);
+        return new Api(
+            $httpClient,
+            $requestFactory,
+            $streamFactory,
+            $this->baseUrl,
+            $this->headers
+        );
     }
 }
