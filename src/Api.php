@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Codewithkyrian\ChromaDB;
 
 use Codewithkyrian\ChromaDB\Exceptions\ChromaConnectionException;
@@ -10,15 +9,15 @@ use Codewithkyrian\ChromaDB\Exceptions\ChromaException;
 use Codewithkyrian\ChromaDB\Models\Collection;
 use Codewithkyrian\ChromaDB\Models\Database;
 use Codewithkyrian\ChromaDB\Models\Tenant;
-use Codewithkyrian\ChromaDB\Requests\AddEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\AddItemsRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateCollectionRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateDatabaseRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateTenantRequest;
-use Codewithkyrian\ChromaDB\Requests\DeleteEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\DeleteItemsRequest;
 use Codewithkyrian\ChromaDB\Requests\GetEmbeddingRequest;
-use Codewithkyrian\ChromaDB\Requests\QueryEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\QueryItemsRequest;
 use Codewithkyrian\ChromaDB\Requests\UpdateCollectionRequest;
-use Codewithkyrian\ChromaDB\Requests\UpdateEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\UpdateItemsRequest;
 use Codewithkyrian\ChromaDB\Requests\UpdateTenantRequest;
 use Codewithkyrian\ChromaDB\Responses\GetItemsResponse;
 use Codewithkyrian\ChromaDB\Responses\QueryItemsResponse;
@@ -28,11 +27,10 @@ use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Client\ClientExceptionInterface;
 
 /**
- * Client for ChromaDB API (v.0.1.0)
+ * Client for ChromaDB API
  */
 class Api
 {
-
     public function __construct(
         public readonly Client $httpClient,
     ) {}
@@ -58,7 +56,7 @@ class Api
      * @param string $database The database name.
      * @param string $tenant The tenant name.
      */
-    public function getCollectionByCrn(string $crn): Collection
+    public function getCollectionByCrn(string $crn, string $database, string $tenant): Collection
     {
         try {
             $response = $this->httpClient->get("/api/v2/collections/{$crn}");
@@ -66,7 +64,7 @@ class Api
             $this->handleChromaApiException($e);
         }
 
-        return Collection::make(json_decode($response->getBody()->getContents(), true));
+        return Collection::make(json_decode($response->getBody()->getContents(), true), $this, $database, $tenant);
     }
 
     /**
@@ -288,7 +286,7 @@ class Api
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return array_map(fn(array $item) => Collection::make($item), $result);
+        return array_map(fn(array $item) => Collection::make($item, $this, $database, $tenant), $result);
     }
 
     /**
@@ -312,7 +310,7 @@ class Api
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return Collection::make($result);
+        return Collection::make($result, $this, $database, $tenant);
     }
 
     /**
@@ -334,7 +332,7 @@ class Api
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return Collection::make($result);
+        return Collection::make($result, $this, $database, $tenant);
     }
 
     /**
@@ -398,9 +396,9 @@ class Api
      * @param string $collectionId The UUID of the collection to add items to.
      * @param string $database The database name to add items to.
      * @param string $tenant The tenant ID to add items to.
-     * @param AddEmbeddingRequest $request The request to add items to the collection.
+     * @param AddItemsRequest $request The request to add items to the collection.
      */
-    public function addCollectionItems(string $collectionId, string $database, string $tenant, AddEmbeddingRequest $request): void
+    public function addCollectionItems(string $collectionId, string $database, string $tenant, AddItemsRequest $request): void
     {
         try {
             $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/add", [
@@ -437,9 +435,9 @@ class Api
      * @param string $collectionId The UUID of the collection to update items in.
      * @param string $database The database name to update items in.
      * @param string $tenant The tenant ID to update items in.
-     * @param UpdateEmbeddingRequest $request The request to update items in the collection.
+     * @param UpdateItemsRequest $request The request to update items in the collection.
      */
-    public function updateCollectionItems(string $collectionId, string $database, string $tenant, UpdateEmbeddingRequest $request): void
+    public function updateCollectionItems(string $collectionId, string $database, string $tenant, UpdateItemsRequest $request): void
     {
         try {
             $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/update", [
@@ -456,9 +454,9 @@ class Api
      * @param string $collectionId The UUID of the collection to upsert items in.
      * @param string $database The database name to upsert items in.
      * @param string $tenant The tenant ID to upsert items in.
-     * @param AddEmbeddingRequest $request The request to upsert items in the collection.
+     * @param AddItemsRequest $request The request to upsert items in the collection.
      */
-    public function upsertCollectionItems(string $collectionId, string $database, string $tenant, AddEmbeddingRequest $request): void
+    public function upsertCollectionItems(string $collectionId, string $database, string $tenant, AddItemsRequest $request): void
     {
         try {
             $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/upsert", [
@@ -470,7 +468,7 @@ class Api
     }
 
     /**
-     * Retrieves records from a collection by ID or metadata filter.
+     * Retrieves items from a collection by ID or metadata filter.
      * 
      * @param string $collectionId The UUID of the collection to get items from.
      * @param string $database The database name to get items from.
@@ -494,7 +492,15 @@ class Api
         return GetItemsResponse::from($result);
     }
 
-    public function deleteCollectionItems(string $collectionId, string $database, string $tenant, DeleteEmbeddingRequest $request): void
+    /**
+     * Deletes items from a collection by ID or metadata filter.
+     * 
+     * @param string $collectionId The UUID of the collection to delete items from.
+     * @param string $database The database name to delete items from.
+     * @param string $tenant The tenant ID to delete items from.
+     * @param DeleteItemsRequest $request The request to delete items from the collection.
+     */
+    public function deleteCollectionItems(string $collectionId, string $database, string $tenant, DeleteItemsRequest $request): void
     {
         try {
             $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/delete", [
@@ -511,11 +517,11 @@ class Api
      * @param string $collectionId The UUID of the collection to query.
      * @param string $database The database name to query the collection in.
      * @param string $tenant The tenant ID to query the collection in.
-     * @param QueryEmbeddingRequest $request The request to query the collection.
+     * @param QueryItemsRequest $request The request to query the collection.
      * 
      * @return QueryItemsResponse
      */
-    public function queryCollectionItems(string $collectionId, string $database, string $tenant, QueryEmbeddingRequest $request): QueryItemsResponse
+    public function queryCollectionItems(string $collectionId, string $database, string $tenant, QueryItemsRequest $request): QueryItemsResponse
     {
         try {
             $response = $this->httpClient->post("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/query", [

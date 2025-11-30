@@ -11,7 +11,6 @@ use Codewithkyrian\ChromaDB\Models\Collection;
 use Codewithkyrian\ChromaDB\Requests\CreateDatabaseRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateTenantRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateCollectionRequest;
-use Codewithkyrian\ChromaDB\Resources\CollectionResource;
 
 class Client
 {
@@ -22,7 +21,6 @@ class Client
     ) {
         $this->initDatabaseAndTenant();
     }
-
 
     public function initDatabaseAndTenant(): void
     {
@@ -78,21 +76,19 @@ class Client
      * @param ?array $metadata Optional metadata associated with the collection.
      * @param ?EmbeddingFunction $embeddingFunction Optional custom embedding function for the collection.
      *
-     * @return CollectionResource
+     * @return Collection
      */
-    public function createCollection(string $name, ?array $metadata = null, ?EmbeddingFunction $embeddingFunction = null): CollectionResource
+    public function createCollection(string $name, ?array $metadata = null, ?EmbeddingFunction $embeddingFunction = null): Collection
     {
         $request = new CreateCollectionRequest($name, $metadata);
 
         $collection = $this->api->createCollection($this->database, $this->tenant, $request);
 
-        return CollectionResource::make(
-            $collection,
-            $this->database,
-            $this->tenant,
-            $embeddingFunction,
-            $this->api
-        );
+        if ($embeddingFunction) {
+            $collection->setEmbeddingFunction($embeddingFunction);
+        }
+
+        return $collection;
     }
 
     /**
@@ -102,21 +98,19 @@ class Client
      * @param ?array $metadata Optional metadata associated with the collection.
      * @param ?EmbeddingFunction $embeddingFunction Optional custom embedding function for the collection.
      *
-     * @return CollectionResource
+     * @return Collection
      */
-    public function getOrCreateCollection(string $name, ?array $metadata = null, ?EmbeddingFunction $embeddingFunction = null): CollectionResource
+    public function getOrCreateCollection(string $name, ?array $metadata = null, ?EmbeddingFunction $embeddingFunction = null): Collection
     {
         $request = new CreateCollectionRequest($name, $metadata, true);
 
-        $collection = $this->api->createCollection($this->database, $this->tenant, $request);
+        $collection =  $this->api->createCollection($this->database, $this->tenant, $request);
 
-        return CollectionResource::make(
-            $collection,
-            $this->database,
-            $this->tenant,
-            $embeddingFunction,
-            $this->api
-        );
+        if ($embeddingFunction) {
+            $collection->setEmbeddingFunction($embeddingFunction);
+        }
+
+        return $collection;
     }
 
     /**
@@ -126,19 +120,17 @@ class Client
      * @param string $name The name of the collection.
      * @param ?EmbeddingFunction $embeddingFunction Optional custom embedding function for the collection.
      *
-     * @return CollectionResource
+     * @return Collection
      */
-    public function getCollection(string $name, ?EmbeddingFunction $embeddingFunction = null): CollectionResource
+    public function getCollection(string $name, ?EmbeddingFunction $embeddingFunction = null): Collection
     {
         $collection = $this->api->getCollection($name, $this->database, $this->tenant);
 
-        return CollectionResource::make(
-            $collection,
-            $this->database,
-            $this->tenant,
-            $embeddingFunction,
-            $this->api
-        );
+        if ($embeddingFunction) {
+            $collection->setEmbeddingFunction($embeddingFunction);
+        }
+
+        return $collection;
     }
 
     /**

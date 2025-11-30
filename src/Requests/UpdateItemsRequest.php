@@ -5,33 +5,29 @@ declare(strict_types=1);
 
 namespace Codewithkyrian\ChromaDB\Requests;
 
-/**
- * Request model for adding items to collection.
- */
-class AddEmbeddingRequest
+class UpdateItemsRequest
 {
     /**
-     * @param float[][] $embeddings Optional embeddings of the items to add.
-     * @param array<array<string, string>> $metadatas Optional metadatas of the items to add.
-     * @param string[] $ids IDs of the items to add.
-     * @param string[] $documents Optional documents of the items to add.
-     * @param string[] $images Optional images of the items to add.
+     * @param float[][] $embeddings Optional embeddings of the items to update.
+     * @param string[] $ids IDs of the items to update.
+     * @param array<string, string> $metadatas Optional metadatas of the items to update.
+     * @param string[] $documents Optional documents of the items to update.
+     * @param string[] $images Optional images of the items to update.
      */
     public function __construct(
         public readonly ?array $embeddings,
+        public readonly array  $ids,
         public readonly ?array $metadatas,
-        public readonly array $ids,
         public readonly ?array $documents,
         public readonly ?array $images,
-
     ) {}
 
     public static function create(array $data): self
     {
         return new self(
             embeddings: $data['embeddings'] ?? null,
-            metadatas: $data['metadatas'] ?? null,
             ids: $data['ids'],
+            metadatas: $data['metadatas'] ?? null,
             documents: $data['documents'] ?? null,
             images: $data['images'] ?? null,
         );
@@ -39,11 +35,11 @@ class AddEmbeddingRequest
 
     public function toArray(): array
     {
-        return [
+        return array_filter([
             'embeddings' => $this->embeddings,
-            'metadatas' => $this->metadatas,
             'ids' => $this->ids,
+            'metadatas' => $this->metadatas,
             'documents' => $this->documents,
-        ];
+        ]);
     }
 }

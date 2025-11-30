@@ -22,14 +22,14 @@ it('can connect to a chroma server using factory', function () {
     expect($client)->toBeInstanceOf(Client::class);
 });
 
-test('can connect to an API token authenticated chroma server', function () {
-    $client = ChromaDB::factory()
-        ->withPort(8001)
-        ->withAuthToken('test-token')
-        ->connect();
+// test('can connect to an API token authenticated chroma server', function () {
+//     $client = ChromaDB::factory()
+//         ->withPort(8001)
+//         ->withAuthToken('test-token')
+//         ->connect();
 
-    expect($client)->toBeInstanceOf(Client::class);
-});
+//     expect($client)->toBeInstanceOf(Client::class);
+// });
 
 /*
 NOTE: Currently token-based authentication is broken in the current ChromaDB versions
