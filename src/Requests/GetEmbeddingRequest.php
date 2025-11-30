@@ -10,48 +10,22 @@ namespace Codewithkyrian\ChromaDB\Requests;
  */
 class GetEmbeddingRequest
 {
+    /**
+     * @param string[] $ids Optional IDs of the items to get.
+     * @param array<string, mixed> $where Optional where clause to filter items by.
+     * @param array<string, mixed> $whereDocument Optional where clause to filter items by.
+     * @param string $sort Optional sort items.
+     * @param int $limit Optional limit on the number of items to get.
+     * @param int $offset Optional offset on the number of items to get.
+     * @param string[] $include Optional list of items to include in the response.
+     */
     public function __construct(
-        /**
-         * Optional IDs of the items to get.
-         *
-         * @var string[]
-         */
         public readonly ?array $ids = null,
-
-        /**
-         * Optional where clause to filter items by.
-         *
-         * @var array<string, mixed>
-         */
         public readonly ?array $where = null,
-
-        /**
-         * Optional where clause to filter items by.
-         *
-         * @var array<string, mixed>
-         */
         public readonly ?array $whereDocument = null,
-
-        /**
-         * Sort items.
-         */
         public readonly ?string $sort = null,
-
-        /**
-         * Optional limit on the number of items to get.
-         */
         public readonly ?int $limit = null,
-
-        /**
-         * Optional offset on the number of items to get.
-         */
         public readonly ?int $offset = null,
-
-        /**
-         * Optional list of items to include in the response.
-         *
-         * @var string[]
-         */
         public readonly ?array $include = null,
     ) {}
 

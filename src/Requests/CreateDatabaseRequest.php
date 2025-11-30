@@ -7,6 +7,9 @@ namespace Codewithkyrian\ChromaDB\Requests;
 
 class CreateDatabaseRequest
 {
+    /**
+     * @param string $name The name of the database
+     */
     public function __construct(
         public readonly string $name,
     ) {}

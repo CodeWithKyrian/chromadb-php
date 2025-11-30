@@ -1,11 +1,8 @@
 <?php
 
-declare(strict_types=1);
-
-
 namespace Codewithkyrian\ChromaDB\Requests;
 
-class CreateTenantRequest
+class UpdateTenantRequest
 {
     /**
      * @param string $name The name of the tenant

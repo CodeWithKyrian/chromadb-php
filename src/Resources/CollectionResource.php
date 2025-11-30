@@ -106,7 +106,7 @@ class CollectionResource
         );
 
 
-        $this->apiClient->add($this->id, $this->database, $this->tenant, $request);
+        $this->apiClient->addCollectionItems($this->id, $this->database, $this->tenant, $request);
     }
 
 
@@ -144,7 +144,7 @@ class CollectionResource
             images: $validated['images'],
         );
 
-        $this->apiClient->update($this->id, $this->database, $this->tenant, $request);
+        $this->apiClient->updateCollectionItems($this->id, $this->database, $this->tenant, $request);
     }
 
     /**
@@ -181,7 +181,7 @@ class CollectionResource
             images: $validated['images'],
         );
 
-        $this->apiClient->upsert($this->id, $this->database, $this->tenant, $request);
+        $this->apiClient->upsertCollectionItems($this->id, $this->database, $this->tenant, $request);
     }
 
     /**
@@ -189,7 +189,7 @@ class CollectionResource
      */
     public function count(): int
     {
-        return $this->apiClient->count($this->id, $this->database, $this->tenant);
+        return $this->apiClient->countCollectionItems($this->id, $this->database, $this->tenant);
     }
 
     /**
@@ -209,7 +209,7 @@ class CollectionResource
             include: $include,
         );
 
-        return $this->apiClient->get($this->id, $this->database, $this->tenant, $request);
+        return $this->apiClient->getCollectionItems($this->id, $this->database, $this->tenant, $request);
     }
 
     /**
@@ -241,7 +241,7 @@ class CollectionResource
             include: $include,
         );
 
-        return $this->apiClient->get($this->id, $this->database, $this->tenant, $request);
+        return $this->apiClient->getCollectionItems($this->id, $this->database, $this->tenant, $request);
     }
 
     /**
@@ -259,7 +259,7 @@ class CollectionResource
             whereDocument: $whereDocument,
         );
 
-        $this->apiClient->delete($this->id, $this->database, $this->tenant, $request);
+        $this->apiClient->deleteCollectionItems($this->id, $this->database, $this->tenant, $request);
     }
 
     /**
@@ -315,7 +315,7 @@ class CollectionResource
             include: $include,
         );
 
-        return $this->apiClient->getNearestNeighbors($this->id, $this->database, $this->tenant, $request);
+        return $this->apiClient->queryCollectionItems($this->id, $this->database, $this->tenant, $request);
     }
 
 

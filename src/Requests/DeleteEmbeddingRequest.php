@@ -7,26 +7,14 @@ namespace Codewithkyrian\ChromaDB\Requests;
 
 class DeleteEmbeddingRequest
 {
+    /**
+     * @param string[] $ids Optional IDs of the items to delete.
+     * @param array<string, string> $where Optional query condition to filter items to delete based on metadata values.
+     * @param array<string, string> $whereDocument Optional query condition to filter items to delete based on document content.
+     */
     public function __construct(
-        /**
-         * Optional IDs of the items to delete.
-         *
-         * @var string[]
-         */
         public readonly ?array $ids,
-
-        /**
-         * Optional query condition to filter items to delete based on metadata values.
-         *
-         * @var array<string, string>
-         */
         public readonly ?array $where,
-
-        /**
-         * Optional query condition to filter items to delete based on document content.
-         *
-         * @var array<string, string>
-         */
         public readonly ?array $whereDocument,
     ) {}
 

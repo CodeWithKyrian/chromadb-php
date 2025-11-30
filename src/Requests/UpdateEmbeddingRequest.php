@@ -7,41 +7,18 @@ namespace Codewithkyrian\ChromaDB\Requests;
 
 class UpdateEmbeddingRequest
 {
+    /**
+     * @param float[][] $embeddings Optional embeddings of the items to update.
+     * @param string[] $ids IDs of the items to update.
+     * @param array<string, string> $metadatas Optional metadatas of the items to update.
+     * @param string[] $documents Optional documents of the items to update.
+     * @param string[] $images Optional images of the items to update.
+     */
     public function __construct(
-        /**
-         * Optional embeddings of the items to update.
-         *
-         * @var float[][]
-         */
         public readonly ?array $embeddings,
-
-
-        /**
-         * IDs of the items to update.
-         *
-         * @var string[]
-         */
         public readonly array  $ids,
-
-        /**
-         * Optional metadatas of the items to update.
-         *
-         * @var array<string, string>[]
-         */
         public readonly ?array $metadatas,
-
-        /**
-         * Optional documents of the items to update.
-         *
-         * @var string[]
-         */
         public readonly ?array $documents,
-
-        /**
-         * Optional uris of the items to update.
-         *
-         * @var string[]
-         */
         public readonly ?array $images,
     ) {}
 

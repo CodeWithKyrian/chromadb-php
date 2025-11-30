@@ -10,22 +10,14 @@ namespace Codewithkyrian\ChromaDB\Requests;
  */
 class CreateCollectionRequest
 {
+    /**
+     * @param string $name The name of the collection
+     * @param array<string, string> $metadata The metadata of the collection
+     * @param bool $getOrCreate If true, will return existing collection if it exists, otherwise will throw an exception.
+     */
     public function __construct(
-        /**
-         * The name of the collection
-         */
         public readonly string $name,
-
-        /**
-         * The metadata of the collection
-         *
-         * @var array<string, string>
-         */
         public readonly ?array $metadata,
-
-        /**
-         * If true, will return existing collection if it exists.
-         */
         public readonly bool $getOrCreate = false,
     ) {}
 
