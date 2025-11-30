@@ -7,6 +7,14 @@ namespace Codewithkyrian\ChromaDB;
 class ChromaDB
 {
     /**
+     * Creates a new factory instance to configure a custom ChromaDB Client
+     */
+    public static function factory(): Factory
+    {
+        return new Factory();
+    }
+
+    /**
      * @deprecated Use ChromaDB::local()->connect() or ChromaDB::factory()->connect() instead.
      */
     public static function client(): Client
@@ -36,14 +44,6 @@ class ChromaDB
         }
 
         return $factory;
-    }
-
-    /**
-     * Creates a new factory instance to configure a custom ChromaDB Client
-     */
-    public static function factory(): Factory
-    {
-        return new Factory();
     }
 
     /**
