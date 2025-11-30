@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Codewithkyrian\ChromaDB;
 
+use Codewithkyrian\ChromaDB\Exceptions\ChromaAuthorizationException;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaConnectionException;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaException;
 use Codewithkyrian\ChromaDB\Models\Collection;
@@ -547,6 +548,13 @@ class Api
         }
 
         if ($e instanceof RequestException) {
+            if ($e->hasResponse()) {
+                $statusCode = $e->getResponse()->getStatusCode();
+                if ($statusCode === 401 || $statusCode === 403) {
+                    throw new ChromaAuthorizationException($e->getMessage(), $statusCode);
+                }
+            }
+
             $errorString = $e->getResponse()->getBody()->getContents();
 
             if (preg_match('/(?<={"\"error\"\:\")([^"]*)/', $errorString, $matches)) {

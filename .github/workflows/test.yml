@@ -14,24 +14,14 @@ jobs:
 
     name: Tests on PHP ${{ matrix.php }} - ${{ matrix.dependency-version }}
 
-    services:
-      chroma-wo-auth:
-        image: chromadb/chroma:1.0.8
-        ports:
-          - 8000:8000
-
-      chroma-w-auth:
-        image: chromadb/chroma:1.0.8
-        ports:
-          - 8001:8000
-        env:
-          CHROMA_SERVER_AUTHN_CREDENTIALS: 'test-token'
-          CHROMA_SERVER_AUTHN_PROVIDER: 'chromadb.auth.token_authn.TokenAuthenticationServerProvider'
-          CHROMA_AUTH_TOKEN_TRANSPORT_HEADER: 'Authorization'
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Install Chroma CLI
+        run: |
+          curl -sSL https://raw.githubusercontent.com/chroma-core/chroma/main/rust/cli/install/install.sh | bash
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Cache dependencies
         uses: actions/cache@v3
