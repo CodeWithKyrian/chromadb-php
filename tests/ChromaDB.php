@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Codewithkyrian\ChromaDB\Client;
 use Codewithkyrian\ChromaDB\ChromaDB;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaAuthorizationException;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaConnectionException;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaAuthorizationException;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaConnectionException;
 
 it('can connect to a normal chroma server', function () {
     $client = ChromaDB::client();

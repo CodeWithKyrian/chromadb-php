@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Requests;
+namespace Codewithkyrian\ChromaDB\Requests;
 
 class DeleteEmbeddingRequest
 {
@@ -28,9 +28,7 @@ class DeleteEmbeddingRequest
          * @var array<string, string>
          */
         public readonly ?array $whereDocument,
-    )
-    {
-    }
+    ) {}
 
     public static function create(array $data): self
     {
@@ -49,5 +47,4 @@ class DeleteEmbeddingRequest
             'where_document' => $this->whereDocument,
         ];
     }
-
 }

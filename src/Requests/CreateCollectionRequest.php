@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Requests;
+namespace Codewithkyrian\ChromaDB\Requests;
 
 /**
  * Request model for creating a collection.
@@ -27,9 +27,7 @@ class CreateCollectionRequest
          * If true, will return existing collection if it exists.
          */
         public readonly bool $getOrCreate = false,
-    )
-    {
-    }
+    ) {}
 
     public static function create(array $data): self
     {

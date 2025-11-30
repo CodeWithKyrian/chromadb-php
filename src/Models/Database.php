@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Models;
+namespace Codewithkyrian\ChromaDB\Models;
 
 class Database
 {
@@ -22,9 +22,7 @@ class Database
          * Tenant of the database.
          */
         public readonly ?string $tenant,
-    )
-    {
-    }
+    ) {}
 
     public static function make(array $data): self
     {
@@ -43,5 +41,4 @@ class Database
             'tenant' => $this->tenant,
         ];
     }
-
 }

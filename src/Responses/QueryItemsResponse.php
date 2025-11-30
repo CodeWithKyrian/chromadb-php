@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Responses;
+namespace Codewithkyrian\ChromaDB\Responses;
 
 /**
  * Response model for querying items from collection.
@@ -60,9 +60,7 @@ class QueryItemsResponse
          * @var float[][]
          */
         public readonly ?array $distances,
-    )
-    {
-    }
+    ) {}
 
     public static function from(array $data): self
     {
@@ -89,5 +87,4 @@ class QueryItemsResponse
             'distances' => $this->distances,
         ]);
     }
-
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Codewithkyrian\ChromaDB;
 
-use Codewithkyrian\ChromaDB\Generated\ChromaApiClient;
+use Codewithkyrian\ChromaDB\Api;
 
 class Factory
 {
@@ -46,7 +46,7 @@ class Factory
     /**
      * The ChromaDB api provider for the instance.
      */
-    protected ChromaApiClient $apiClient;
+    protected Api $api;
 
     /**
      * The url of the client to use for the requests.
@@ -104,12 +104,12 @@ class Factory
 
     public function connect(): Client
     {
-        $this->apiClient = $this->createApiClient();
+        $this->api = $this->createApi();
 
-        return new Client($this->apiClient, $this->database, $this->tenant);
+        return new Client($this->api, $this->database, $this->tenant);
     }
 
-    public function createApiClient() : ChromaApiClient
+    public function createApi(): Api
     {
         $this->baseUrl = $this->host . ':' . $this->port;
 
@@ -127,6 +127,6 @@ class Factory
             'headers' => $headers,
         ]);
 
-        return new ChromaApiClient($this->httpClient);
+        return new Api($this->httpClient);
     }
 }

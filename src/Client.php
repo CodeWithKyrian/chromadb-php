@@ -5,19 +5,21 @@ declare(strict_types=1);
 namespace Codewithkyrian\ChromaDB;
 
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
-use Codewithkyrian\ChromaDB\Generated\ChromaApiClient;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaNotFoundException;
-use Codewithkyrian\ChromaDB\Generated\Models\Collection;
+use Codewithkyrian\ChromaDB\Api;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaNotFoundException;
+use Codewithkyrian\ChromaDB\Models\Collection;
+use Codewithkyrian\ChromaDB\Requests\CreateDatabaseRequest;
+use Codewithkyrian\ChromaDB\Requests\CreateTenantRequest;
+use Codewithkyrian\ChromaDB\Requests\CreateCollectionRequest;
 use Codewithkyrian\ChromaDB\Resources\CollectionResource;
 
 class Client
 {
     public function __construct(
-        public readonly ChromaApiClient $apiClient,
-        public readonly string          $database,
-        public readonly string          $tenant,
-    )
-    {
+        public readonly Api     $api,
+        public readonly string  $database,
+        public readonly string  $tenant,
+    ) {
         $this->initDatabaseAndTenant();
     }
 
@@ -25,17 +27,17 @@ class Client
     public function initDatabaseAndTenant(): void
     {
         try {
-            $this->apiClient->getTenant($this->tenant);
+            $this->api->getTenant($this->tenant);
         } catch (ChromaNotFoundException) {
-            $createTenantRequest = new Generated\Requests\CreateTenantRequest($this->tenant);
-            $this->apiClient->createTenant($createTenantRequest);
+            $createTenantRequest = new CreateTenantRequest($this->tenant);
+            $this->api->createTenant($createTenantRequest);
         }
 
         try {
-            $this->apiClient->getDatabase($this->database, $this->tenant);
+            $this->api->getDatabase($this->database, $this->tenant);
         } catch (ChromaNotFoundException) {
-            $createDatabaseRequest = new Generated\Requests\CreateDatabaseRequest($this->database);
-            $this->apiClient->createDatabase($this->tenant, $createDatabaseRequest);
+            $createDatabaseRequest = new CreateDatabaseRequest($this->database);
+            $this->api->createDatabase($this->tenant, $createDatabaseRequest);
         }
     }
 
@@ -44,7 +46,7 @@ class Client
      */
     public function version(): string
     {
-        return $this->apiClient->version();
+        return $this->api->version();
     }
 
     /**
@@ -53,7 +55,7 @@ class Client
      */
     public function heartbeat(): int
     {
-        $res = $this->apiClient->heartbeat();
+        $res = $this->api->heartbeat();
 
         return $res['nanosecond heartbeat'] ?? 0;
     }
@@ -65,7 +67,7 @@ class Client
      */
     public function listCollections(): array
     {
-        return  $this->apiClient->listCollections($this->database, $this->tenant);
+        return  $this->api->listCollections($this->database, $this->tenant);
     }
 
 
@@ -80,17 +82,16 @@ class Client
      */
     public function createCollection(string $name, ?array $metadata = null, ?EmbeddingFunction $embeddingFunction = null): CollectionResource
     {
-        $request = new Generated\Requests\CreateCollectionRequest($name, $metadata);
+        $request = new CreateCollectionRequest($name, $metadata);
 
-        $collection = $this->apiClient->createCollection($this->database, $this->tenant, $request);
-
+        $collection = $this->api->createCollection($this->database, $this->tenant, $request);
 
         return CollectionResource::make(
             $collection,
             $this->database,
             $this->tenant,
             $embeddingFunction,
-            $this->apiClient
+            $this->api
         );
     }
 
@@ -105,16 +106,16 @@ class Client
      */
     public function getOrCreateCollection(string $name, ?array $metadata = null, ?EmbeddingFunction $embeddingFunction = null): CollectionResource
     {
-        $request = new Generated\Requests\CreateCollectionRequest($name, $metadata, true);
+        $request = new CreateCollectionRequest($name, $metadata, true);
 
-        $collection = $this->apiClient->createCollection($this->database, $this->tenant, $request);
+        $collection = $this->api->createCollection($this->database, $this->tenant, $request);
 
         return CollectionResource::make(
             $collection,
             $this->database,
             $this->tenant,
             $embeddingFunction,
-            $this->apiClient
+            $this->api
         );
     }
 
@@ -129,14 +130,14 @@ class Client
      */
     public function getCollection(string $name, ?EmbeddingFunction $embeddingFunction = null): CollectionResource
     {
-        $collection = $this->apiClient->getCollection($name, $this->database, $this->tenant);
+        $collection = $this->api->getCollection($name, $this->database, $this->tenant);
 
         return CollectionResource::make(
             $collection,
             $this->database,
             $this->tenant,
             $embeddingFunction,
-            $this->apiClient
+            $this->api
         );
     }
 
@@ -147,7 +148,7 @@ class Client
      */
     public function deleteCollection(string $name): void
     {
-        $this->apiClient->deleteCollection($name, $this->database, $this->tenant);
+        $this->api->deleteCollection($name, $this->database, $this->tenant);
     }
 
     /**
@@ -161,7 +162,4 @@ class Client
             $this->deleteCollection($collection->name);
         }
     }
-
-
-
 }

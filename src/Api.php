@@ -3,24 +3,24 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated;
+namespace Codewithkyrian\ChromaDB;
 
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaConnectionException;
-use Codewithkyrian\ChromaDB\Generated\Exceptions\ChromaException;
-use Codewithkyrian\ChromaDB\Generated\Models\Collection;
-use Codewithkyrian\ChromaDB\Generated\Models\Database;
-use Codewithkyrian\ChromaDB\Generated\Models\Tenant;
-use Codewithkyrian\ChromaDB\Generated\Requests\AddEmbeddingRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\CreateCollectionRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\CreateDatabaseRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\CreateTenantRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\DeleteEmbeddingRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\GetEmbeddingRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\QueryEmbeddingRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\UpdateCollectionRequest;
-use Codewithkyrian\ChromaDB\Generated\Requests\UpdateEmbeddingRequest;
-use Codewithkyrian\ChromaDB\Generated\Responses\GetItemsResponse;
-use Codewithkyrian\ChromaDB\Generated\Responses\QueryItemsResponse;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaConnectionException;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaException;
+use Codewithkyrian\ChromaDB\Models\Collection;
+use Codewithkyrian\ChromaDB\Models\Database;
+use Codewithkyrian\ChromaDB\Models\Tenant;
+use Codewithkyrian\ChromaDB\Requests\AddEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\CreateCollectionRequest;
+use Codewithkyrian\ChromaDB\Requests\CreateDatabaseRequest;
+use Codewithkyrian\ChromaDB\Requests\CreateTenantRequest;
+use Codewithkyrian\ChromaDB\Requests\DeleteEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\GetEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\QueryEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Requests\UpdateCollectionRequest;
+use Codewithkyrian\ChromaDB\Requests\UpdateEmbeddingRequest;
+use Codewithkyrian\ChromaDB\Responses\GetItemsResponse;
+use Codewithkyrian\ChromaDB\Responses\QueryItemsResponse;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
@@ -29,7 +29,7 @@ use Psr\Http\Client\ClientExceptionInterface;
 /**
  * Client for ChromaDB API (v.0.1.0)
  */
-class ChromaApiClient
+class Api
 {
 
     public function __construct(
@@ -43,6 +43,7 @@ class ChromaApiClient
         } catch (ClientExceptionInterface $e) {
             $this->handleChromaApiException($e);
         }
+
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -51,12 +52,11 @@ class ChromaApiClient
     {
         try {
             $response = $this->httpClient->get('/api/v2/version');
-
-            // remove the quo
-            return trim($response->getBody()->getContents(), '"');
         } catch (ClientExceptionInterface $e) {
             $this->handleChromaApiException($e);
         }
+
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     public function heartbeat(): array
@@ -66,6 +66,7 @@ class ChromaApiClient
         } catch (ClientExceptionInterface $e) {
             $this->handleChromaApiException($e);
         }
+
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -76,6 +77,7 @@ class ChromaApiClient
         } catch (ClientExceptionInterface $e) {
             $this->handleChromaApiException($e);
         }
+
         return json_decode($response->getBody()->getContents(), true);
     }
 
@@ -119,13 +121,13 @@ class ChromaApiClient
     {
         try {
             $response = $this->httpClient->get("/api/v2/tenants/$tenant");
-
-            $result = json_decode($response->getBody()->getContents(), true);
-
-            return Tenant::make($result);
         } catch (ClientExceptionInterface $e) {
             $this->handleChromaApiException($e);
         }
+
+        $result = json_decode($response->getBody()->getContents(), true);
+
+        return Tenant::make($result);
     }
 
 
@@ -139,9 +141,7 @@ class ChromaApiClient
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return array_map(function (array $item) {
-            return Collection::make($item);
-        }, $result);
+        return array_map(fn(array $item) => Collection::make($item), $result);
     }
 
     public function createCollection(string $database, string $tenant, CreateCollectionRequest $request): Collection
@@ -175,7 +175,7 @@ class ChromaApiClient
     public function updateCollection(string $collectionId, string $database, string $tenant, UpdateCollectionRequest $request): void
     {
         try {
-            $response = $this->httpClient->put("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId", [
+            $this->httpClient->put("/api/v2/tenants/$tenant/databases/$database/collections/$collectionId", [
                 'json' => $request->toArray(),
             ]);
         } catch (ClientExceptionInterface $e) {

@@ -3,25 +3,23 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Models;
+namespace Codewithkyrian\ChromaDB\Models;
 
-class Collection
+class Tenant
 {
-
     public function __construct(
+        /**
+         * Name of the tenant.
+         *
+         * @var string
+         */
         public readonly string $name,
-        public readonly string $id,
-        public readonly ?array $metadata,
-    )
-    {
-    }
+    ) {}
 
     public static function make(array $data): self
     {
         return new self(
             name: $data['name'],
-            id: $data['id'],
-            metadata: $data['metadata'] ?? null,
         );
     }
 
@@ -29,8 +27,6 @@ class Collection
     {
         return [
             'name' => $this->name,
-            'id' => $this->id,
-            'metadata' => $this->metadata,
         ];
     }
 }

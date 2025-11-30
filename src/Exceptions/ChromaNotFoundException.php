@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Exceptions;
+namespace Codewithkyrian\ChromaDB\Exceptions;
 
 class ChromaNotFoundException extends ChromaException
 {

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace Codewithkyrian\ChromaDB\Generated\Responses;
+namespace Codewithkyrian\ChromaDB\Responses;
 
 /**
  * Response model for getting items from collection.
@@ -38,9 +38,7 @@ class GetItemsResponse
          * @var string[]
          */
         public readonly ?array $documents,
-    )
-    {
-    }
+    ) {}
 
     public static function from(array $data): self
     {
