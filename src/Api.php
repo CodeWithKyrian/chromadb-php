@@ -34,7 +34,7 @@ use Psr\Http\Message\StreamFactoryInterface;
 class Api
 {
     public function __construct(
-        public readonly ClientInterface $httpClient,
+        public readonly ClientInterface $client,
         public readonly RequestFactoryInterface $requestFactory,
         public readonly StreamFactoryInterface $streamFactory,
         public readonly string $baseUri,
@@ -519,7 +519,7 @@ class Api
         }
 
         try {
-            $response = $this->httpClient->sendRequest($request);
+            $response = $this->client->sendRequest($request);
         } catch (ClientExceptionInterface $e) {
             throw new ChromaConnectionException($e->getMessage(), $e->getCode());
         }

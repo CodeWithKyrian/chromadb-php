@@ -20,6 +20,27 @@ class ChromaDB
     }
 
     /**
+     * Creates a new factory instance configured for Chroma Cloud.
+     */
+    public static function cloud(string $apiKey, ?string $tenant = null, ?string $database = null): Factory
+    {
+        $factory = self::factory()
+            ->withHost('https://api.trychroma.com')
+            ->withPort(8000)
+            ->withHeader('X-Chroma-Token', $apiKey);
+
+        if ($tenant) {
+            $factory->withTenant($tenant);
+        }
+
+        if ($database) {
+            $factory->withDatabase($database);
+        }
+
+        return $factory;
+    }
+
+    /**
      * Resets the database. This will delete all collections and entries and
      * return true if the database was reset successfully.
      */
