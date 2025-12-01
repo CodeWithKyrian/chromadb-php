@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+namespace Codewithkyrian\ChromaDB\Tests\Feature;
 use Codewithkyrian\ChromaDB\ChromaDB;
+use Codewithkyrian\ChromaDB\Client;
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
+use Codewithkyrian\ChromaDB\Embeddings\JinaEmbeddingFunction;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaDimensionalityException;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaException;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaTypeException;
@@ -13,9 +16,8 @@ use Codewithkyrian\ChromaDB\Exceptions\ChromaNotFoundException;
 use Codewithkyrian\ChromaDB\Models\Collection;
 
 beforeEach(function () {
-    // $this->chromaServer->start();
-
     $this->client = ChromaDB::factory()
+        ->withHeader('X-Chroma-Token', 'test-token')
         ->withDatabase('test_database')
         ->withTenant('test_tenant')
         ->connect();
@@ -37,6 +39,9 @@ beforeEach(function () {
     );
 });
 
+afterEach(function () {
+    $this->client->reset();
+});
 
 it('can get the version', function () {
     $version = $this->client->version();

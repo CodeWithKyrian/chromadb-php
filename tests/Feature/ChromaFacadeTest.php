@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+namespace Codewithkyrian\ChromaDB\Tests\Feature;
 use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Client;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaConnectionException;
 use Codewithkyrian\ChromaDB\Factory;
+use ReflectionClass;
 
 it('can connect to a normal chroma server', function () {
     $client = ChromaDB::client();
@@ -17,6 +19,7 @@ it('can connect to a chroma server using factory', function () {
     $client = ChromaDB::factory()
         ->withHost('http://localhost')
         ->withPort(8000)
+        ->withHeader('X-Chroma-Token', 'test-token')
         ->connect();
 
     expect($client)->toBeInstanceOf(Client::class);

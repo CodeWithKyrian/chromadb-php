@@ -39,11 +39,12 @@ class AddItemsRequest
 
     public function toArray(): array
     {
-        return [
+        return array_filter([
             'embeddings' => $this->embeddings,
             'metadatas' => $this->metadatas,
             'ids' => $this->ids,
             'documents' => $this->documents,
-        ];
+            'images' => $this->images,
+        ], fn($value) => $value !== null);
     }
 }

@@ -105,20 +105,25 @@ class Factory
 
     public function connect(): Client
     {
+        $api = $this->createApi();
+
+        return new Client($api, $this->database, $this->tenant);
+    }
+
+    public function createApi(): Api
+    {
         $baseUrl = $this->port ? "$this->host:$this->port" : $this->host;
 
         $httpClient = Psr18ClientDiscovery::find();
         $requestFactory = Psr17FactoryDiscovery::findRequestFactory();
         $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
 
-        $api = new Api(
+        return new Api(
             $httpClient,
             $requestFactory,
             $streamFactory,
             $baseUrl,
             $this->headers
         );
-
-        return new Client($api, $this->database, $this->tenant);
     }
 }
