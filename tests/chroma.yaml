@@ -1,0 +1,5 @@
+# HTTP server settings
+port: 8000
+listen_address: "0.0.0.0"
+allow_reset: true
+persist_path: ".chroma"

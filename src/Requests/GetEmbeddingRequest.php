@@ -44,7 +44,7 @@ class GetEmbeddingRequest
 
     public function toArray(): array
     {
-        return [
+        return array_filter([
             'ids' => $this->ids,
             'where' => $this->where,
             'whereDocument' => $this->whereDocument,
@@ -52,6 +52,6 @@ class GetEmbeddingRequest
             'limit' => $this->limit,
             'offset' => $this->offset,
             'include' => $this->include,
-        ];
+        ], fn($value) => $value !== null);
     }
 }

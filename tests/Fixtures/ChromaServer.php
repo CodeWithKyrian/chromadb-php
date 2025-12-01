@@ -1,6 +1,6 @@
 <?php
 
-namespace Codewithkyrian\ChromaDB\Tests;
+namespace Codewithkyrian\ChromaDB\Tests\Fixtures;
 
 use Symfony\Component\Process\Process;
 
@@ -19,11 +19,11 @@ class ChromaServer
             return;
         }
 
-        $command = ['chroma', 'run', '--port', (string)$port, '--path', '.chroma'];
+        $command = ['chroma', 'run', 'tests/chroma.yaml'];
         
         self::$process = new Process($command, env: [
-            'IS_PERSISTENT' => false,
-            'ALLOW_RESET' => true
+            'CHROMA_SERVER_AUTHN_CREDENTIALS' => 'test-token',
+            'CHROMA_SERVER_AUTHN_PROVIDER' => 'chromadb.auth.token_authn.TokenAuthenticationServerProvider',
         ]);
 
         self::$process->start();

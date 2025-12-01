@@ -39,5 +39,8 @@ jobs:
       - name: Install Composer dependencies
         run: composer update --${{ matrix.dependency-version }} --no-interaction --prefer-dist
 
+      - name: Start Chroma Server
+        run: chroma run tests/chroma.yaml
+
       - name: Run tests
         run: composer test

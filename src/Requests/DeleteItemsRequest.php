@@ -29,10 +29,10 @@ class DeleteItemsRequest
 
     public function toArray(): array
     {
-        return [
+        return array_filter([
             'ids' => $this->ids,
             'where' => $this->where,
             'where_document' => $this->whereDocument,
-        ];
+        ], fn($value) => $value !== null);
     }
 }

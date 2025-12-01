@@ -266,7 +266,7 @@ class Collection
         $include ??= ['embeddings', 'metadatas', 'distances'];
 
         if (
-            !(($queryEmbeddings != null xor $queryTexts != null xor $queryImages != null))
+            !(($queryEmbeddings != null xor $queryTexts  != null xor $queryImages != null))
         ) {
             throw new \InvalidArgumentException(
                 'You must provide only one of queryEmbeddings, queryTexts, queryImages, or queryUris'
@@ -350,7 +350,7 @@ class Collection
             || $images != null && count($images) != count($ids)
         ) {
             throw new \InvalidArgumentException(
-                'The number of ids, embeddings, metadatas, documents, and images  must be the same'
+                'The number of ids, embeddings, metadatas, documents, and images must be the same'
             );
         }
 
