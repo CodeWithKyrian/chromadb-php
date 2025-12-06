@@ -11,6 +11,7 @@ use Codewithkyrian\ChromaDB\Models\Collection;
 use Codewithkyrian\ChromaDB\Requests\CreateDatabaseRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateTenantRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateCollectionRequest;
+use Codewithkyrian\ChromaDB\Requests\ForkCollectionRequest;
 
 class Client
 {
@@ -131,6 +132,29 @@ class Client
         }
 
         return $collection;
+    }
+
+    /**
+     * Forks an existing collection.
+     *
+     * @param string $name The name of the collection to fork.
+     * @param string $newName The name for the forked collection.
+     * @param ?EmbeddingFunction $embeddingFunction Optional custom embedding function for the forked collection.
+     *
+     * @return Collection
+     */
+    public function forkCollection(string $name, string $newName, ?EmbeddingFunction $embeddingFunction = null): Collection
+    {
+        $collection = $this->api->getCollection($name, $this->database, $this->tenant);
+        $request = new ForkCollectionRequest($newName);
+
+        $forkedCollection = $this->api->forkCollection($collection->id, $this->database, $this->tenant, $request);
+
+        if ($embeddingFunction) {
+            $forkedCollection->setEmbeddingFunction($embeddingFunction);
+        }
+
+        return $forkedCollection;
     }
 
     /**

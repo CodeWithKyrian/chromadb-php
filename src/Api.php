@@ -14,6 +14,7 @@ use Codewithkyrian\ChromaDB\Requests\CreateCollectionRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateDatabaseRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateTenantRequest;
 use Codewithkyrian\ChromaDB\Requests\DeleteItemsRequest;
+use Codewithkyrian\ChromaDB\Requests\ForkCollectionRequest;
 use Codewithkyrian\ChromaDB\Requests\GetEmbeddingRequest;
 use Codewithkyrian\ChromaDB\Requests\QueryItemsRequest;
 use Codewithkyrian\ChromaDB\Requests\UpdateCollectionRequest;
@@ -38,8 +39,7 @@ class Api
         public readonly StreamFactoryInterface $streamFactory,
         public readonly string $baseUri,
         public readonly array $headers = [],
-    ) {
-    }
+    ) {}
 
     /**
      * Retrieves the current user's identity, tenant, and databases.
@@ -289,6 +289,27 @@ class Api
     }
 
     /**
+     * Forks an existing collection.
+     * 
+     * @param string $collectionId The UUID of the collection to fork.
+     * @param string $database The database name to fork the collection from.
+     * @param string $tenant The tenant ID to fork the collection from.
+     * @param ForkCollectionRequest $request The request to fork the collection.
+     * 
+     * @return Collection
+     */
+    public function forkCollection(string $collectionId, string $database, string $tenant, ForkCollectionRequest $request): Collection
+    {
+        $response = $this->sendRequest('POST', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/fork", [
+            'json' => $request->toArray()
+        ]);
+
+        $result = json_decode($response->getBody()->getContents(), true);
+
+        return Collection::fromArray($result, $this, $database, $tenant);
+    }
+
+    /**
      * Deletes a collection in a given database.
      * 
      * @param string $collectionId The UUID of the collection to delete.
@@ -313,7 +334,6 @@ class Api
         $response = $this->sendRequest('GET', "/api/v2/tenants/$tenant/databases/$database/collections_count");
 
         return json_decode($response->getBody()->getContents(), true);
-
     }
 
     /**
@@ -392,7 +412,7 @@ class Api
         $response = $this->sendRequest('POST', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/get", [
             'json' => $request->toArray(),
         ]);
- 
+
         $result = json_decode($response->getBody()->getContents(), true);
 
         return GetItemsResponse::fromArray($result);
