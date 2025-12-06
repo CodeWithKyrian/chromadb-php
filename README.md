@@ -475,6 +475,11 @@ $collection->delete(where: Where::field('category')->eq('outdated'));
 $collection->delete(whereDocument: Where::document()->contains('outdated'));
 ```
 
+## Examples
+
+- **[`basic-usage`](examples/basic-usage)** - Simple example demonstrating basic operations: connecting, adding documents, and querying
+- **[`document-chunking-cloud`](examples/document-chunking-cloud)** - Document chunking, embedding, and storage in Chroma Cloud with semantic search
+
 ## Testing
 
 Run the test suite using Pest.
