@@ -13,9 +13,9 @@ class DeleteItemsRequest
      * @param array<string, string> $whereDocument Optional query condition to filter items to delete based on document content.
      */
     public function __construct(
-        public readonly ?array $ids,
-        public readonly ?array $where,
-        public readonly ?array $whereDocument,
+        public readonly ?array $ids = null,
+        public readonly ?array $where = null,
+        public readonly ?array $whereDocument = null,
     ) {}
 
     public static function fromArray(array $data): self

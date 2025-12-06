@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Codewithkyrian\ChromaDB\Tests\Feature;
 
 use Codewithkyrian\ChromaDB\ChromaDB;
-use Codewithkyrian\ChromaDB\Exceptions\ChromaException;
 use Codewithkyrian\ChromaDB\Exceptions\InvalidArgumentException;
 use Codewithkyrian\ChromaDB\Exceptions\NotFoundException;
 use Codewithkyrian\ChromaDB\Exceptions\UniqueConstraintException;
@@ -18,7 +17,6 @@ use Codewithkyrian\ChromaDB\Requests\GetEmbeddingRequest;
 use Codewithkyrian\ChromaDB\Requests\QueryItemsRequest;
 use Codewithkyrian\ChromaDB\Requests\UpdateCollectionRequest;
 use Codewithkyrian\ChromaDB\Requests\UpdateItemsRequest;
-use Codewithkyrian\ChromaDB\Requests\UpdateTenantRequest;
 
 beforeEach(function () {
     $this->api = ChromaDB::factory()
@@ -264,12 +262,6 @@ it('can get items from a collection', function () {
 
     $items = $this->api->getCollectionItems($collection->id, 'default_database', 'default_tenant', new GetEmbeddingRequest(
         ids: ['id1'],
-        where: null,
-        whereDocument: null,
-        sort: null,
-        limit: null,
-        offset: null,
-        include: []
     ));
     expect($items->ids)->toContain('id1')
         ->and($items->ids)->not->toContain('id2');
@@ -289,9 +281,6 @@ it('can query items in a collection', function () {
     $query = $this->api->queryCollectionItems($collection->id, 'default_database', 'default_tenant', new QueryItemsRequest(
         queryEmbeddings: [[1.1, 2.2]],
         nResults: 1,
-        where: null,
-        whereDocument: null,
-        include: []
     ));
     expect($query->ids[0])->toContain('id1');
 });
@@ -351,8 +340,6 @@ it('can delete items from a collection', function () {
 
     $this->api->deleteCollectionItems($collection->id, 'default_database', 'default_tenant', new DeleteItemsRequest(
         ids: ['id1'],
-        where: null,
-        whereDocument: null
     ));
     $count = $this->api->countCollectionItems($collection->id, 'default_database', 'default_tenant');
     expect($count)->toBe(1);
