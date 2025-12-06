@@ -21,7 +21,6 @@ jobs:
       - name: Install Chroma CLI
         run: |
           curl -sSL https://raw.githubusercontent.com/chroma-core/chroma/main/rust/cli/install/install.sh | bash
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -38,9 +37,6 @@ jobs:
 
       - name: Install Composer dependencies
         run: composer update --${{ matrix.dependency-version }} --no-interaction --prefer-dist
-
-      - name: Start Chroma Server
-        run: chroma run tests/chroma.yaml
 
       - name: Run tests
         run: composer test
