@@ -1,0 +1,25 @@
+THE EVOLUTION OF ARTIFICIAL INTELLIGENCE
+
+CHAPTER 1: The Dawn of Thinking Machines
+PAGE 1
+The quest to create machines that can think is as old as storytelling itself. From the automatons of Greek mythology to the Golems of Jewish folklore, humanity has always dreamed of breathing life into the inanimate. However, it wasn't until the 20th century that the mathematical foundations for Artificial Intelligence were laid. Ada Lovelace, often considered the first computer programmer, speculated that the Analytical Engine might act upon other things besides numbers.
+PAGE 2
+In 1950, Alan Turing proposed the famous "Turing Test" as a measure of machine intelligence. He asked, "Can machines think?" and suggested that if a machine could converse with a human without being distinguished from another human, it could be said to "think". This period marked the birth of symbolic AI, where researchers believed that intelligence could be reduced to symbol manipulation.
+PAGE 3
+The 1956 Dartmouth Workshop is widely considered the founding event of AI as a field. John McCarthy, Marvin Minsky, Nathaniel Rochester, and Claude Shannon brought together researchers to discuss "thinking machines". Optimism was high; Minsky famously predicted that within a generation, the problem of creating 'artificial intelligence' would be substantially solved.
+
+CHAPTER 2: Deep Learning and Neural Networks
+PAGE 1
+While early AI focused on logic and rules, another approach was brewing: connectionism. Inspired by the human brain, artificial neural networks aimed to learn from data rather than following hard-coded instructions. The Perceptron, developed by Frank Rosenblatt in 1958, was an early model of a single neuron, capable of simple binary classification.
+PAGE 2
+However, neural networks faced a "winter" in the 1970s and 80s due to computational limitations and the inability to train deep networks. It wasn't until the mid-2000s, with the advent of powerful GPUs and big data, that "Deep Learning" re-emerged. Researchers like Geoffrey Hinton showed that multi-layered networks could learn complex patterns, leading to breakthroughs in image and speech recognition.
+PAGE 3
+The turning point came in 2012 with AlexNet, a deep convolutional neural network that dominated the ImageNet competition. This victory demonstrated the undeniable power of deep learning, sparking an explosion of investment and research. Suddenly, computers could see, hear, and translate languages with near-human accuracy.
+
+CHAPTER 3: The Generative Era
+PAGE 1
+In the 2020s, AI shifted from merely analyzing data to creating it. Generative AI, powered by architectures like the Transformer (introduced by Google in 2017), enabled models to understand and generate human-like text. The concept of "Attention" allowed these models to weigh the importance of different words in a sentence, capturing context like never before.
+PAGE 2
+Large Language Models (LLMs) like GPT-3 and GPT-4 demonstrated emergent abilities. They could write code, compose poetry, solve math problems, and even reason through complex tasks. This era also saw the rise of diffusion models in image generation, allowing users to create stunning visual art from simple text prompts.
+PAGE 3
+As we stand on the brink of Artificial General Intelligence (AGI), the focus shifts to alignment and safety. Ensuring that these powerful systems act in accordance with human values is the defining challenge of our time. The journey from the Dartmouth Workshop to ChatGPT has been long, but in many ways, it is just beginning.

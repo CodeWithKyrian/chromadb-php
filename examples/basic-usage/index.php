@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../../vendor/autoload.php';
 
 use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Embeddings\JinaEmbeddingFunction;
@@ -21,9 +21,9 @@ $collection = $chroma->getCollection(
 );
 
 $items = [
-    ["id" => 1, "content" => "He seems very happy" ],
-    ["id" => 2, "content"=> "He was very sad when we last talked"],
-    ["id" => 3, "content"=> "She made him angry"],
+    ["id" => 1, "content" => "He seems very happy"],
+    ["id" => 2, "content" => "He was very sad when we last talked"],
+    ["id" => 3, "content" => "She made him angry"],
 ];
 
 $collection->add(
@@ -37,5 +37,3 @@ $queryResponse = $collection->query(
 );
 
 dd($queryResponse->documents[0], $queryResponse->distances[0]);
-
-
