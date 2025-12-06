@@ -90,9 +90,11 @@ class Collection
             }
         }
 
+        $preparedEmbeddings = $this->prepareEmbeddings($embeddings, $documents);
+
         $validated = $this->validate(
             ids: $ids,
-            embeddings: $embeddings,
+            embeddings: $preparedEmbeddings,
             metadatas: $metadatas,
             documents: $documents,
             requireEmbeddingsOrDocuments: true,
@@ -138,9 +140,11 @@ class Collection
             }
         }
 
+        $preparedEmbeddings = $this->prepareEmbeddings($embeddings, $documents);
+
         $validated = $this->validate(
             ids: $ids,
-            embeddings: $embeddings,
+            embeddings: $preparedEmbeddings,
             metadatas: $metadatas,
             documents: $documents,
             requireEmbeddingsOrDocuments: false,
@@ -186,9 +190,11 @@ class Collection
             }
         }
 
+        $preparedEmbeddings = $this->prepareEmbeddings($embeddings, $documents);
+
         $validated = $this->validate(
             ids: $ids,
-            embeddings: $embeddings,
+            embeddings: $preparedEmbeddings,
             metadatas: $metadatas,
             documents: $documents,
             requireEmbeddingsOrDocuments: true,
@@ -318,22 +324,10 @@ class Collection
             );
         }
 
-        $finalEmbeddings = [];
+        $finalEmbeddings = $this->prepareEmbeddings($queryEmbeddings, $queryTexts);
 
-        if ($queryEmbeddings == null) {
-            if ($this->embeddingFunction == null) {
-                throw new InvalidArgumentException(
-                    'You must provide an embedding function if you did not provide embeddings'
-                );
-            } elseif ($queryTexts != null) {
-                $finalEmbeddings = $this->embeddingFunction->generate($queryTexts);
-            } else {
-                throw new InvalidArgumentException(
-                    'If you did not provide queryEmbeddings, you must provide queryTexts'
-                );
-            }
-        } else {
-            foreach ($queryEmbeddings as $i => $embedding) {
+        if ($finalEmbeddings !== null) {
+            foreach ($finalEmbeddings as $i => $embedding) {
                 if (!is_array($embedding)) {
                     throw new InvalidArgumentException(sprintf(
                         "Expected query embedding at index %d to be an array, got %s",
@@ -343,7 +337,7 @@ class Collection
                 }
 
                 foreach ($embedding as $j => $value) {
-                    if (!is_float($value)) {
+                    if (!is_float($value) && !is_int($value)) {
                         throw new InvalidArgumentException(sprintf(
                             "Expected query embedding value at index %d.%d to be a float, got %s",
                             $i,
@@ -353,9 +347,7 @@ class Collection
                     }
                 }
             }
-            $finalEmbeddings = $queryEmbeddings;
         }
-
 
         $request = new QueryItemsRequest(
             where: $where,
@@ -384,9 +376,68 @@ class Collection
     }
 
     /**
+     * Prepares embeddings by generating missing ones in batch.
+     * 
+     * @param array|null $embeddings Existing embeddings (may contain nulls for missing ones)
+     * @param array|null $texts Texts to generate embeddings from (documents or queryTexts)
+     * @return array|null Prepared embeddings array with all nulls filled in, or null if texts is null
+     */
+    protected function prepareEmbeddings(?array $embeddings, ?array $texts): ?array
+    {
+        if ($texts === null) {
+            return $embeddings;
+        }
+
+        if (empty($texts)) {
+            return $embeddings;
+        }
+
+        if ($embeddings === null || empty($embeddings)) {
+            return $this->embeddingFunction->generate($texts);
+        }
+
+        $missingIndices = [];
+        $textsToEmbed = [];
+
+        foreach ($embeddings as $i => $embedding) {
+            if ($embedding === null) {
+                if (!isset($texts[$i]) || $texts[$i] === null) {
+                    throw new InvalidArgumentException(sprintf('Cannot generate embedding at index %d: no text provided', $i));
+                }
+                $missingIndices[] = $i;
+                $textsToEmbed[] = $texts[$i];
+            }
+        }
+
+        if (empty($missingIndices)) {
+            return $embeddings;
+        }
+
+        $generatedEmbeddings = $this->embeddingFunction->generate($textsToEmbed);
+
+        $finalEmbeddings = [];
+        $generatedIndex = 0;
+
+        foreach ($embeddings as $i => $embedding) {
+            if ($embedding === null) {
+                $finalEmbeddings[] = $generatedEmbeddings[$generatedIndex++];
+            } else {
+                $finalEmbeddings[] = $embedding;
+            }
+        }
+
+        return $finalEmbeddings;
+    }
+
+    /**
      * Validates the inputs to the add, upsert, and update methods.
      *
-     * @return array{ids: string[], embeddings: int[][], metadatas: array[], documents: string[]}
+     * @return array{
+     * ids: string[],
+     * embeddings: int[][],
+     * metadatas: array[],
+     * documents: string[]
+     * }
      */
     protected function validate(
         array $ids,
@@ -428,19 +479,7 @@ class Collection
         }
 
         // Validate embeddings
-        if ($embeddings == null) {
-            if ($this->embeddingFunction == null) {
-                throw new InvalidArgumentException(
-                    'You must provide an embedding function if you did not provide embeddings'
-                );
-            } elseif ($documents != null) {
-                $finalEmbeddings = $this->embeddingFunction->generate($documents);
-            } else {
-                throw new InvalidArgumentException(
-                    'If you did not provide embeddings, you must provide documents'
-                );
-            }
-        } else {
+        if ($embeddings !== null) {
             foreach ($embeddings as $i => $embedding) {
                 if (!is_array($embedding)) {
                     throw new InvalidArgumentException(sprintf(
@@ -451,9 +490,9 @@ class Collection
                 }
 
                 foreach ($embedding as $j => $value) {
-                    if (!is_float($value)) {
+                    if (!is_float($value) && !is_int($value)) {
                         throw new InvalidArgumentException(sprintf(
-                            "Expected embedding value at index %d.%d to be a float, got %s",
+                            "Expected embedding value at index %d.%d to be a number, got %s",
                             $i,
                             $j,
                             gettype($value)
@@ -461,10 +500,9 @@ class Collection
                     }
                 }
             }
-
-            $finalEmbeddings = $embeddings;
         }
 
+        // Validate ids
         $ids = array_map(function ($id) {
             if (is_object($id) && method_exists($id, '__toString')) {
                 $id = (string) $id;
@@ -478,6 +516,7 @@ class Collection
             return $id;
         }, $ids);
 
+        // Validate unique ids
         $uniqueIds = array_unique($ids);
         if (count($uniqueIds) !== count($ids)) {
             $duplicateIds = array_filter($ids, function ($id) use ($ids) {
@@ -488,7 +527,7 @@ class Collection
 
         return [
             'ids' => $ids,
-            'embeddings' => $finalEmbeddings,
+            'embeddings' => $embeddings,
             'metadatas' => $metadatas,
             'documents' => $documents,
         ];
