@@ -15,11 +15,11 @@ class QueryItemsRequest
      * @param string[] $include Optional list of items to include in the response.
      */
     public function __construct(
-        public readonly ?array $where,
-        public readonly ?array $whereDocument,
-        public readonly ?array $queryEmbeddings,
-        public readonly ?int   $nResults,
-        public readonly ?array $include,
+        public readonly ?array $where = null,
+        public readonly ?array $whereDocument = null,
+        public readonly ?array $queryEmbeddings = null,
+        public readonly ?int   $nResults = null,
+        public readonly ?array $include = null,
     ) {}
 
     public static function fromArray(array $data): self
