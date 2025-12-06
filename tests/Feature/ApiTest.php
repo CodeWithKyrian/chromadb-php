@@ -230,7 +230,6 @@ it('can add items to a collection', function () {
         embeddings: [[1.1, 2.2], [3.3, 4.4]],
         metadatas: [['key' => 'value1'], ['key' => 'value2']],
         documents: ['doc1', 'doc2'],
-        images: null
     ));
 
     $count = $this->api->countCollectionItems($collection->id, 'default_database', 'default_tenant');
@@ -246,7 +245,6 @@ it('can count items in a collection', function () {
         embeddings: [[1.1, 2.2]],
         metadatas: [['key' => 'value1']],
         documents: ['doc1'],
-        images: null
     ));
 
     $count = $this->api->countCollectionItems($collection->id, 'default_database', 'default_tenant');
@@ -262,7 +260,6 @@ it('can get items from a collection', function () {
         embeddings: [[1.1, 2.2], [3.3, 4.4]],
         metadatas: [['key' => 'value1'], ['key' => 'value2']],
         documents: ['doc1', 'doc2'],
-        images: null
     ));
 
     $items = $this->api->getCollectionItems($collection->id, 'default_database', 'default_tenant', new GetEmbeddingRequest(
@@ -287,7 +284,6 @@ it('can query items in a collection', function () {
         embeddings: [[1.1, 2.2]],
         metadatas: [['key' => 'value1']],
         documents: ['doc1'],
-        images: null
     ));
 
     $query = $this->api->queryCollectionItems($collection->id, 'default_database', 'default_tenant', new QueryItemsRequest(
@@ -309,7 +305,6 @@ it('can update items in a collection', function () {
         embeddings: [[1.1, 2.2]],
         metadatas: [['key' => 'value1']],
         documents: ['doc1'],
-        images: null
     ));
 
     $this->api->updateCollectionItems($collection->id, 'default_database', 'default_tenant', new UpdateItemsRequest(
@@ -317,7 +312,6 @@ it('can update items in a collection', function () {
         ids: ['id1'],
         metadatas: [['key' => 'updated_value1']],
         documents: ['updated_doc1'],
-        images: null
     ));
     $updatedItem = $this->api->getCollectionItems($collection->id, 'default_database', 'default_tenant', new GetEmbeddingRequest(ids: ['id1']));
     expect($updatedItem->metadatas[0])->toBe(['key' => 'updated_value1']);
@@ -332,7 +326,6 @@ it('can upsert items in a collection', function () {
         embeddings: [[1.1, 2.2]],
         metadatas: [['key' => 'value1']],
         documents: ['doc1'],
-        images: null
     ));
 
     $this->api->upsertCollectionItems($collection->id, 'default_database', 'default_tenant', new AddItemsRequest(
@@ -340,7 +333,6 @@ it('can upsert items in a collection', function () {
         metadatas: [['key' => 'upserted_value1'], ['key' => 'value3']],
         ids: ['id1', 'id3'],
         documents: ['upserted_doc1', 'doc3'],
-        images: null
     ));
     $count = $this->api->countCollectionItems($collection->id, 'default_database', 'default_tenant');
     expect($count)->toBe(2);
@@ -355,7 +347,6 @@ it('can delete items from a collection', function () {
         embeddings: [[1.1, 2.2], [3.3, 4.4]],
         metadatas: [['key' => 'value1'], ['key' => 'value2']],
         documents: ['doc1', 'doc2'],
-        images: null
     ));
 
     $this->api->deleteCollectionItems($collection->id, 'default_database', 'default_tenant', new DeleteItemsRequest(

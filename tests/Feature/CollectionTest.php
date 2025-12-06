@@ -181,7 +181,7 @@ it('cannot add items with mismatched lengths', function () {
         ids: ['1', '2'],
         embeddings: [[1.0, 2.0, 3.0, 4.0, 5.0]]
     );
-})->throws(InvalidArgumentException::class, 'The number of ids, embeddings, metadatas, documents, and images must be the same');
+})->throws(InvalidArgumentException::class, 'The number of ids, embeddings, metadatas, and documents must be the same');
 
 it('cannot add items with invalid IDs', function () {
     $this->collection->add(
@@ -196,7 +196,7 @@ it('cannot add items without embeddings or documents', function () {
         embeddings: null,
         documents: null
     );
-})->throws(InvalidArgumentException::class, 'You must provide embeddings, documents, or images');
+})->throws(InvalidArgumentException::class, 'You must provide embeddings or documents');
 
 it('can upsert single embeddings to a collection', function () {
     $ids = ['test1'];

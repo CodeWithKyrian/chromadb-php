@@ -12,7 +12,6 @@ class Record
      * @param array<string, mixed>|null $metadata The metadata of the item.
      * @param string|null $document The document content of the item.
      * @param string|null $uri The URI of the item.    
-     * @param string|null $image The base64 encoded image of the item.
      */
     public function __construct(
         public string $id,
@@ -20,7 +19,6 @@ class Record
         public ?array $metadata = null,
         public ?string $document = null,
         public ?string $uri = null,
-        public ?string $image = null,
     ) {
     }
 
@@ -50,12 +48,6 @@ class Record
     public function withUri(string $uri): self
     {
         $this->uri = $uri;
-        return $this;
-    }
-
-    public function withImage(string $image): self
-    {
-        $this->image = $image;
         return $this;
     }
 }
