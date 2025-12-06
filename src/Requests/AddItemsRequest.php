@@ -15,14 +15,12 @@ class AddItemsRequest
      * @param array<array<string, string>> $metadatas Optional metadatas of the items to add.
      * @param string[] $ids IDs of the items to add.
      * @param string[] $documents Optional documents of the items to add.
-     * @param string[] $images Optional images of the items to add.
      */
     public function __construct(
         public readonly array $ids,
         public readonly ?array $embeddings = null,
         public readonly ?array $metadatas = null,
         public readonly ?array $documents = null,
-        public readonly ?array $images = null,
     ) {}
 
     public static function fromArray(array $data): self
@@ -32,7 +30,6 @@ class AddItemsRequest
             metadatas: $data['metadatas'] ?? null,
             ids: $data['ids'],
             documents: $data['documents'] ?? null,
-            images: $data['images'] ?? null,
         );
     }
 
@@ -43,7 +40,6 @@ class AddItemsRequest
             'metadatas' => $this->metadatas,
             'ids' => $this->ids,
             'documents' => $this->documents,
-            'images' => $this->images,
         ], fn($value) => $value !== null);
     }
 }

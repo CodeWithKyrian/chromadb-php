@@ -12,8 +12,7 @@ class ScoredRecord extends Record
      * @param array<string, mixed>|null $metadata The metadata of the item.
      * @param string|null $document The document content of the item.
      * @param string|null $uri The URI of the item.
-     * @param string|null $image The base64 encoded image of the item.
-     * @param float|null $distance The distance of the item (only for query results).
+     * @param float|null $distance The distance of the item
      */
     public function __construct(
         string $id,
@@ -21,15 +20,9 @@ class ScoredRecord extends Record
         ?array $metadata = null,
         ?string $document = null,
         ?string $uri = null,
-        ?string $image = null,
         public ?float $distance = null,
     ) {
-        parent::__construct($id, $embedding, $metadata, $document, $uri, $image);
-    }
-
-    public static function make(string $id): self
-    {
-        return new self($id);
+        parent::__construct($id, $embedding, $metadata, $document, $uri);
     }
 
     public function withDistance(float $distance): self

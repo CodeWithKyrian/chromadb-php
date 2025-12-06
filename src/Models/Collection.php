@@ -67,7 +67,6 @@ class Collection
      * @param number[][]|null $embeddings The embeddings of the items to add (optional).
      * @param array<string, array<string, mixed>>|null $metadatas The metadatas of the items to add (optional).
      * @param string[]|null $documents The documents of the items to add (optional).
-     * @param string[]|null $images The base64 encoded images of the items to add (optional).
      * @return void
      */
     public function add(
@@ -75,7 +74,6 @@ class Collection
         ?array $embeddings = null,
         ?array $metadatas = null,
         ?array $documents = null,
-        ?array $images = null
     ): void {
         if (!empty($ids) && $ids[0] instanceof Record) {
             $records = $ids;
@@ -83,14 +81,12 @@ class Collection
             $embeddings = [];
             $metadatas = [];
             $documents = [];
-            $images = [];
 
             foreach ($records as $record) {
                 $ids[] = $record->id;
                 $embeddings[] = $record->embedding;
                 $metadatas[] = $record->metadata;
                 $documents[] = $record->document;
-                $images[] = $record->image;
             }
         }
 
@@ -99,7 +95,6 @@ class Collection
             embeddings: $embeddings,
             metadatas: $metadatas,
             documents: $documents,
-            images: $images,
             requireEmbeddingsOrDocuments: true,
         );
 
@@ -108,7 +103,6 @@ class Collection
             metadatas: $validated['metadatas'],
             ids: $validated['ids'],
             documents: $validated['documents'],
-            images: $validated['images'],
         );
 
         $this->api->addCollectionItems($this->id, $this->database, $this->tenant, $request);
@@ -121,7 +115,6 @@ class Collection
      * @param number[][]|null $embeddings The embeddings of the items to update (optional).
      * @param array<string, array<string, mixed>>|null $metadatas The metadatas of the items to update (optional).
      * @param string[]|null $documents The documents of the items to update (optional).
-     * @param string[]|null $images The base64 encoded images of the items to update (optional).
      *
      */
     public function update(
@@ -129,7 +122,6 @@ class Collection
         ?array $embeddings = null,
         ?array $metadatas = null,
         ?array $documents = null,
-        ?array $images = null
     ) {
         if (!empty($ids) && $ids[0] instanceof Record) {
             $records = $ids;
@@ -137,14 +129,12 @@ class Collection
             $embeddings = [];
             $metadatas = [];
             $documents = [];
-            $images = [];
 
             foreach ($records as $record) {
                 $ids[] = $record->id;
                 $embeddings[] = $record->embedding;
                 $metadatas[] = $record->metadata;
                 $documents[] = $record->document;
-                $images[] = $record->image;
             }
         }
 
@@ -153,7 +143,6 @@ class Collection
             embeddings: $embeddings,
             metadatas: $metadatas,
             documents: $documents,
-            images: $images,
             requireEmbeddingsOrDocuments: false,
         );
 
@@ -162,7 +151,6 @@ class Collection
             ids: $validated['ids'],
             metadatas: $validated['metadatas'],
             documents: $validated['documents'],
-            images: $validated['images'],
         );
 
         $this->api->updateCollectionItems($this->id, $this->database, $this->tenant, $request);
@@ -175,7 +163,6 @@ class Collection
      * @param number[][]|null $embeddings The embeddings of the items to upsert (optional).
      * @param array<string, array<string, mixed>>|null $metadatas The metadatas of the items to upsert (optional).
      * @param string[]|null $documents The documents of the items to upsert (optional).
-     * @param string[]|null $images The base64 encoded images of the items to upsert (optional).
      *
      */
     public function upsert(
@@ -183,7 +170,6 @@ class Collection
         ?array $embeddings = null,
         ?array $metadatas = null,
         ?array $documents = null,
-        ?array $images = null
     ): void {
         if (!empty($ids) && $ids[0] instanceof Record) {
             $records = $ids;
@@ -191,14 +177,12 @@ class Collection
             $embeddings = [];
             $metadatas = [];
             $documents = [];
-            $images = [];
 
             foreach ($records as $record) {
                 $ids[] = $record->id;
                 $embeddings[] = $record->embedding;
                 $metadatas[] = $record->metadata;
                 $documents[] = $record->document;
-                $images[] = $record->image;
             }
         }
 
@@ -207,7 +191,6 @@ class Collection
             embeddings: $embeddings,
             metadatas: $metadatas,
             documents: $documents,
-            images: $images,
             requireEmbeddingsOrDocuments: true,
         );
 
@@ -216,7 +199,6 @@ class Collection
             metadatas: $validated['metadatas'],
             ids: $validated['ids'],
             documents: $validated['documents'],
-            images: $validated['images'],
         );
 
         $this->api->upsertCollectionItems($this->id, $this->database, $this->tenant, $request);
@@ -307,7 +289,6 @@ class Collection
      * 
      * @param number[][]|null $queryEmbeddings The embeddings of the query (optional).
      * @param string[]|null $queryTexts The texts of the query (optional).
-     * @param string[]|null $queryImages The images of the query (optional).
      * @param int $nResults The number of results to return (optional).
      * @param ?array $where The where clause to filter items to search based on metadata values (optional).
      * @param ?array $whereDocument The where clause to filter to search based on document content (optional).
@@ -316,7 +297,6 @@ class Collection
     public function query(
         ?array $queryEmbeddings = null,
         ?array $queryTexts = null,
-        ?array $queryImages = null,
         int $nResults = 10,
         ?array $where = null,
         ?array $whereDocument = null,
@@ -331,10 +311,10 @@ class Collection
         }
 
         if (
-            !(($queryEmbeddings != null xor $queryTexts != null xor $queryImages != null))
+            !(($queryEmbeddings != null xor $queryTexts != null))
         ) {
             throw new InvalidArgumentException(
-                'You must provide only one of queryEmbeddings, queryTexts, queryImages, or queryUris'
+                'You must provide only one of queryEmbeddings or queryTexts'
             );
         }
 
@@ -347,11 +327,9 @@ class Collection
                 );
             } elseif ($queryTexts != null) {
                 $finalEmbeddings = $this->embeddingFunction->generate($queryTexts);
-            } elseif ($queryImages != null) {
-                $finalEmbeddings = $this->embeddingFunction->generate($queryImages);
             } else {
                 throw new InvalidArgumentException(
-                    'If you did not provide embeddings, you must provide documents or images'
+                    'If you did not provide queryEmbeddings, you must provide queryTexts'
                 );
             }
         } else {
@@ -408,21 +386,20 @@ class Collection
     /**
      * Validates the inputs to the add, upsert, and update methods.
      *
-     * @return array{ids: string[], embeddings: int[][], metadatas: array[], documents: string[], images: string[], uris: string[]}
+     * @return array{ids: string[], embeddings: int[][], metadatas: array[], documents: string[]}
      */
     protected function validate(
         array $ids,
         ?array $embeddings,
         ?array $metadatas,
         ?array $documents,
-        ?array $images,
         bool $requireEmbeddingsOrDocuments
     ): array {
 
         if ($requireEmbeddingsOrDocuments) {
-            if ($embeddings === null && $documents === null && $images === null) {
+            if ($embeddings === null && $documents === null) {
                 throw new InvalidArgumentException(
-                    'You must provide embeddings, documents, or images'
+                    'You must provide embeddings or documents'
                 );
             }
         }
@@ -431,10 +408,9 @@ class Collection
             $embeddings != null && count($embeddings) != count($ids)
             || $metadatas != null && count($metadatas) != count($ids)
             || $documents != null && count($documents) != count($ids)
-            || $images != null && count($images) != count($ids)
         ) {
             throw new InvalidArgumentException(
-                'The number of ids, embeddings, metadatas, documents, and images must be the same'
+                'The number of ids, embeddings, metadatas, and documents must be the same'
             );
         }
 
@@ -459,11 +435,9 @@ class Collection
                 );
             } elseif ($documents != null) {
                 $finalEmbeddings = $this->embeddingFunction->generate($documents);
-            } elseif ($images != null) {
-                $finalEmbeddings = $this->embeddingFunction->generate($images);
             } else {
                 throw new InvalidArgumentException(
-                    'If you did not provide embeddings, you must provide documents or images'
+                    'If you did not provide embeddings, you must provide documents'
                 );
             }
         } else {
@@ -517,7 +491,6 @@ class Collection
             'embeddings' => $finalEmbeddings,
             'metadatas' => $metadatas,
             'documents' => $documents,
-            'images' => $images,
         ];
     }
 }
