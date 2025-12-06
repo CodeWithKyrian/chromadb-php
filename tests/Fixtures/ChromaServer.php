@@ -19,12 +19,7 @@ class ChromaServer
             return;
         }
 
-        $command = ['chroma', 'run', 'tests/chroma.yaml'];
-        
-        self::$process = new Process($command, env: [
-            'CHROMA_SERVER_AUTHN_CREDENTIALS' => 'test-token',
-            'CHROMA_SERVER_AUTHN_PROVIDER' => 'chromadb.auth.token_authn.TokenAuthenticationServerProvider',
-        ]);
+        self::$process = new Process(['chroma', 'run', 'tests/Fixtures/chroma.yaml']);
 
         self::$process->start();
 
