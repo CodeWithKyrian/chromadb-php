@@ -142,7 +142,7 @@ class Api
      */
     public function updateTenant(string $tenant, UpdateTenantRequest $request): void
     {
-        $this->sendRequest('PUT', "/api/v2/tenants/$tenant", [
+        $this->sendRequest('PATCH', "/api/v2/tenants/$tenant", [
             'json' => $request->toArray(),
         ]);
     }

@@ -21,7 +21,7 @@ class UpdateTenantRequest
     public function toArray(): array
     {
         return [
-            'name' => $this->name,
+            'resource_name' => $this->name,
         ];
     }
 }
