@@ -18,12 +18,11 @@ class AddItemsRequest
      * @param string[] $images Optional images of the items to add.
      */
     public function __construct(
-        public readonly ?array $embeddings,
-        public readonly ?array $metadatas,
         public readonly array $ids,
-        public readonly ?array $documents,
-        public readonly ?array $images,
-
+        public readonly ?array $embeddings = null,
+        public readonly ?array $metadatas = null,
+        public readonly ?array $documents = null,
+        public readonly ?array $images = null,
     ) {}
 
     public static function fromArray(array $data): self
