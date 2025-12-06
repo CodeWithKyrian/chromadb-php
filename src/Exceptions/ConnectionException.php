@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-
 namespace Codewithkyrian\ChromaDB\Exceptions;
 
-class ChromaTypeException extends ChromaException
+class ConnectionException extends ChromaException
 {
 
 }

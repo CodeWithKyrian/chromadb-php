@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Codewithkyrian\ChromaDB\Tests\Feature;
 use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Client;
-use Codewithkyrian\ChromaDB\Exceptions\ChromaConnectionException;
+use Codewithkyrian\ChromaDB\Exceptions\ConnectionException;
 use Codewithkyrian\ChromaDB\Factory;
 use ReflectionClass;
 
@@ -30,7 +30,7 @@ it('throws a connection exception when connecting to a non-existent chroma serve
         ->withHost('http://localhost')
         ->withPort(8002)
         ->connect();
-})->throws(ChromaConnectionException::class);
+})->throws(ConnectionException::class);
 
 it('can create a cloud factory', function () {
     $factory = ChromaDB::cloud('test-api-key');

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Codewithkyrian\ChromaDB\Tests\Feature;
 
 use Codewithkyrian\ChromaDB\ChromaDB;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaException;
+use Codewithkyrian\ChromaDB\Exceptions\InvalidArgumentException;
 use Codewithkyrian\ChromaDB\Query\Where;
 use Codewithkyrian\ChromaDB\Types\Record;
 
@@ -88,6 +90,29 @@ describe('metadata filtering operators', function () {
         ));
         expect($res->ids)->toHaveCount(2)->toContain('4', '5');
     });
+
+    it('cannot get with an invalid operator', function () {
+        $this->collection->get(where: ['cat' => ['$invalid' => 'A']]);
+    })->throws(InvalidArgumentException::class, 'Invalid where clause');
+
+    it('cannot get with a non-list to $and', function () {
+        $this->collection->get(where: ['$and' => 'invalid']);
+    })->throws(ChromaException::class, 'Invalid where clause');
+
+    it('cannot get with a non-list to $or', function () {
+        $this->collection->get(where: ['$or' => 'invalid']);
+    })->throws(InvalidArgumentException::class, 'Invalid where clause');
+
+    it('cannot get with a list of Where objects directly', function () {
+        $this->collection->get(where: [
+            Where::field('cat')->eq('A'),
+            Where::field('val')->eq(10)
+        ]);
+    })->throws(InvalidArgumentException::class, 'Invalid where clause');
+
+    it('cannot get with a random array structure', function () {
+        $this->collection->get(where: ['random' => ['junk']]);
+    })->throws(InvalidArgumentException::class, 'Invalid where clause');
 });
 
 describe('document content filtering', function () {
@@ -126,9 +151,32 @@ describe('document content filtering', function () {
         ));
         expect($res->ids)->toBe(['1']);
     });
+
+    it('cannot get with an invalid document operator', function () {
+        $this->collection->get(whereDocument: ['$invalid' => 'A']);
+    })->throws(ChromaException::class, 'Invalid where document clause');
+
+    it('cannot get with a non-list to $and in whereDocument', function () {
+        $this->collection->get(whereDocument: ['$and' => 'invalid']);
+    })->throws(InvalidArgumentException::class, 'Invalid where document clause');
+
+    it('cannot get with a non-list to $or in whereDocument', function () {
+        $this->collection->get(whereDocument: ['$or' => 'invalid']);
+    })->throws(InvalidArgumentException::class, 'Invalid where document clause');
+
+    it('cannot get with a list of Where objects directly in whereDocument', function () {
+        $this->collection->get(whereDocument: [
+            Where::document()->contains('A'),
+            Where::document()->contains('B')
+        ]);
+    })->throws(ChromaException::class, 'Invalid where document clause');
+
+    it('cannot get with a random array structure in whereDocument', function () {
+        $this->collection->get(whereDocument: ['random' => ['junk']]);
+    })->throws(InvalidArgumentException::class, 'Invalid where document clause');
 });
 
-it('tests filtering in query method', function () {
+it('can query with filtering', function () {
     $res = $this->collection->query(
         queryEmbeddings: [[0.1]],
         nResults: 5,
@@ -137,7 +185,7 @@ it('tests filtering in query method', function () {
     expect($res->ids[0])->toHaveCount(2)->toContain('1', '3');
 });
 
-it('tests filtering in delete method', function () {
+it('can delete with filtering', function () {
     $this->collection->delete(where: Where::field('cat')->eq('B'));
 
     $res = $this->collection->get();
@@ -145,7 +193,7 @@ it('tests filtering in delete method', function () {
         ->and($res->ids)->toHaveCount(3);
 });
 
-it('tests document filtering in delete method', function () {
+it('can delete with document filtering', function () {
     $this->collection->delete(whereDocument: Where::document()->contains('library'));
 
     $res = $this->collection->get();

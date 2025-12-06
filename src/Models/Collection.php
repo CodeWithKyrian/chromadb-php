@@ -6,6 +6,7 @@ namespace Codewithkyrian\ChromaDB\Models;
 
 use Codewithkyrian\ChromaDB\Api;
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
+use Codewithkyrian\ChromaDB\Exceptions\InvalidArgumentException;
 use Codewithkyrian\ChromaDB\Requests\AddItemsRequest;
 use Codewithkyrian\ChromaDB\Requests\DeleteItemsRequest;
 use Codewithkyrian\ChromaDB\Requests\GetEmbeddingRequest;
@@ -36,8 +37,7 @@ class Collection
         public readonly ?string $database = null,
         public readonly ?string $tenant = null,
         public ?EmbeddingFunction $embeddingFunction = null,
-    ) {
-    }
+    ) {}
 
     public static function fromArray(array $data, Api $api, string $database, string $tenant): self
     {
@@ -326,10 +326,14 @@ class Collection
 
         $include = array_map(fn($i) => $i instanceof Includes ? $i->value : $i, $include);
 
+        if ($nResults <= 0) {
+            throw new InvalidArgumentException('Expected nResults to be a positive integer');
+        }
+
         if (
             !(($queryEmbeddings != null xor $queryTexts != null xor $queryImages != null))
         ) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'You must provide only one of queryEmbeddings, queryTexts, queryImages, or queryUris'
             );
         }
@@ -338,7 +342,7 @@ class Collection
 
         if ($queryEmbeddings == null) {
             if ($this->embeddingFunction == null) {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'You must provide an embedding function if you did not provide embeddings'
                 );
             } elseif ($queryTexts != null) {
@@ -346,13 +350,31 @@ class Collection
             } elseif ($queryImages != null) {
                 $finalEmbeddings = $this->embeddingFunction->generate($queryImages);
             } else {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'If you did not provide embeddings, you must provide documents or images'
                 );
             }
         } else {
+            foreach ($queryEmbeddings as $i => $embedding) {
+                if (!is_array($embedding)) {
+                    throw new InvalidArgumentException(sprintf(
+                        "Expected query embedding at index %d to be an array, got %s",
+                        $i,
+                        gettype($embedding)
+                    ));
+                }
 
-
+                foreach ($embedding as $j => $value) {
+                    if (!is_float($value)) {
+                        throw new InvalidArgumentException(sprintf(
+                            "Expected query embedding value at index %d.%d to be a float, got %s",
+                            $i,
+                            $j,
+                            gettype($value)
+                        ));
+                    }
+                }
+            }
             $finalEmbeddings = $queryEmbeddings;
         }
 
@@ -388,8 +410,7 @@ class Collection
      *
      * @return array{ids: string[], embeddings: int[][], metadatas: array[], documents: string[], images: string[], uris: string[]}
      */
-    protected
-        function validate(
+    protected function validate(
         array $ids,
         ?array $embeddings,
         ?array $metadatas,
@@ -400,7 +421,7 @@ class Collection
 
         if ($requireEmbeddingsOrDocuments) {
             if ($embeddings === null && $documents === null && $images === null) {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'You must provide embeddings, documents, or images'
                 );
             }
@@ -412,14 +433,28 @@ class Collection
             || $documents != null && count($documents) != count($ids)
             || $images != null && count($images) != count($ids)
         ) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'The number of ids, embeddings, metadatas, documents, and images must be the same'
             );
         }
 
+        // Validate metadatas
+        if ($metadatas !== null) {
+            foreach ($metadatas as $i => $metadata) {
+                if ($metadata !== null && !is_array($metadata)) {
+                    throw new InvalidArgumentException(sprintf(
+                        "Expected metadata at index %d to be an array, got %s",
+                        $i,
+                        gettype($metadata)
+                    ));
+                }
+            }
+        }
+
+        // Validate embeddings
         if ($embeddings == null) {
             if ($this->embeddingFunction == null) {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'You must provide an embedding function if you did not provide embeddings'
                 );
             } elseif ($documents != null) {
@@ -427,18 +462,44 @@ class Collection
             } elseif ($images != null) {
                 $finalEmbeddings = $this->embeddingFunction->generate($images);
             } else {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'If you did not provide embeddings, you must provide documents or images'
                 );
             }
         } else {
+            foreach ($embeddings as $i => $embedding) {
+                if (!is_array($embedding)) {
+                    throw new InvalidArgumentException(sprintf(
+                        "Expected embedding at index %d to be an array, got %s",
+                        $i,
+                        gettype($embedding)
+                    ));
+                }
+
+                foreach ($embedding as $j => $value) {
+                    if (!is_float($value)) {
+                        throw new InvalidArgumentException(sprintf(
+                            "Expected embedding value at index %d.%d to be a float, got %s",
+                            $i,
+                            $j,
+                            gettype($value)
+                        ));
+                    }
+                }
+            }
+
             $finalEmbeddings = $embeddings;
         }
 
         $ids = array_map(function ($id) {
-            $id = (string) $id;
+            if (is_object($id) && method_exists($id, '__toString')) {
+                $id = (string) $id;
+            }
+            if (!is_string($id)) {
+                throw new InvalidArgumentException('Expected IDs to be strings, got ' . gettype($id));
+            }
             if ($id === '') {
-                throw new \InvalidArgumentException('Expected IDs to be non-empty strings');
+                throw new InvalidArgumentException('Expected IDs to be an array of non-empty strings');
             }
             return $id;
         }, $ids);
@@ -448,7 +509,7 @@ class Collection
             $duplicateIds = array_filter($ids, function ($id) use ($ids) {
                 return count(array_keys($ids, $id)) > 1;
             });
-            throw new \InvalidArgumentException('Expected IDs to be unique, found duplicates for: ' . implode(', ', $duplicateIds));
+            throw new InvalidArgumentException('Expected IDs to be unique, found duplicates for: ' . implode(', ', array_unique($duplicateIds)));
         }
 
         return [

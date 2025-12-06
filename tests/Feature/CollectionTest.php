@@ -7,7 +7,7 @@ namespace Codewithkyrian\ChromaDB\Tests\Feature;
 use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaException;
-use Codewithkyrian\ChromaDB\Exceptions\ChromaInvalidArgumentException;
+use Codewithkyrian\ChromaDB\Exceptions\InvalidArgumentException;
 use Codewithkyrian\ChromaDB\Types\Includes;
 use Codewithkyrian\ChromaDB\Types\Record;
 use Codewithkyrian\ChromaDB\Types\ScoredRecord;
@@ -42,7 +42,7 @@ afterEach(function () {
 
 it('can add single embeddings to a collection', function () {
     $ids = ['test1'];
-    $embeddings = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]];
+    $embeddings = [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]];
     $metadatas = [['test' => 'test']];
 
     $this->collection->add($ids, $embeddings, $metadatas);
@@ -74,7 +74,7 @@ it('can add single text documents to a collection', function () {
 
 it('cannot add single embeddings to a collection with a different dimensionality', function () {
     $ids = ['test1'];
-    $embeddings = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]];
+    $embeddings = [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]];
     $metadatas = [['test' => 'test']];
 
     $this->collection->add($ids, $embeddings, $metadatas);
@@ -82,11 +82,11 @@ it('cannot add single embeddings to a collection with a different dimensionality
     // Dimensionality is now 10. Other embeddings must have the same dimensionality.
 
     $ids = ['test2'];
-    $embeddings = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]];
+    $embeddings = [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0]];
     $metadatas = [['test' => 'test2']];
 
     $this->collection->add($ids, $embeddings, $metadatas);
-})->throws(ChromaInvalidArgumentException::class, 'Collection expecting embedding with dimension of 10, got 11');
+})->throws(InvalidArgumentException::class, 'Collection expecting embedding with dimension of 10, got 11');
 
 it('can add items to collection using record objects', function () {
     $records = [
@@ -105,9 +105,9 @@ it('can add items to collection using record objects', function () {
 it('can add batch embeddings to a collection', function () {
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-        [21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
+        [11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0],
+        [21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0],
     ];
     $metadatas = [
         ['some' => 'metadata1'],
@@ -132,9 +132,9 @@ it('can add batch embeddings to a collection', function () {
 it('cannot add batch embeddings with different dimensionality to a collection', function () {
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        [11, 12, 13, 14, 15, 16, 17, 18, 19],
-        [21, 22, 23, 24, 25, 26, 27, 28],
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
+        [11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0],
+        [21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0],
     ];
     $metadatas = [
         ['some' => 'metadata1'],
@@ -143,7 +143,7 @@ it('cannot add batch embeddings with different dimensionality to a collection', 
     ];
 
     $this->collection->add($ids, $embeddings, $metadatas);
-})->throws(ChromaInvalidArgumentException::class);
+})->throws(InvalidArgumentException::class);
 
 it('can add batch documents to a collection', function () {
     $ids = ['test1', 'test2', 'test3'];
@@ -176,9 +176,31 @@ it('can add batch documents to a collection', function () {
         ->toMatchArray($metadatas);
 });
 
+it('cannot add items with mismatched lengths', function () {
+    $this->collection->add(
+        ids: ['1', '2'],
+        embeddings: [[1.0, 2.0, 3.0, 4.0, 5.0]]
+    );
+})->throws(InvalidArgumentException::class, 'The number of ids, embeddings, metadatas, documents, and images must be the same');
+
+it('cannot add items with invalid IDs', function () {
+    $this->collection->add(
+        ids: [''], // Empty string ID
+        embeddings: [[1.0, 2.0, 3.0, 4.0, 5.0]]
+    );
+})->throws(InvalidArgumentException::class, 'Expected IDs to be an array of non-empty strings');
+
+it('cannot add items without embeddings or documents', function () {
+    $this->collection->add(
+        ids: ['1'],
+        embeddings: null,
+        documents: null
+    );
+})->throws(InvalidArgumentException::class, 'You must provide embeddings, documents, or images');
+
 it('can upsert single embeddings to a collection', function () {
     $ids = ['test1'];
-    $embeddings = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]];
+    $embeddings = [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]];
     $metadatas = [['test' => 'test']];
 
     $this->collection->upsert($ids, $embeddings, $metadatas);
@@ -193,7 +215,7 @@ it('can upsert single embeddings to a collection', function () {
 
 it('can update single embeddings in a collection', function () {
     $ids = ['test1'];
-    $embeddings = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]];
+    $embeddings = [[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]];
     $metadatas = [['test' => 'test']];
 
     $this->collection->add($ids, $embeddings, $metadatas);
@@ -330,6 +352,19 @@ it('can query a collection', function () {
         ->toMatchArray([0.0, 0.0]);
 });
 
+it('cannot query with negative nResults', function () {
+    $this->collection->query(
+        queryTexts: ['test'],
+        nResults: -1
+    );
+})->throws(InvalidArgumentException::class, 'Expected nResults to be a positive integer');
+
+it('cannot query with invalid embedding format', function () {
+    $this->collection->query(
+        queryEmbeddings: [['invalid']]
+    );
+})->throws(InvalidArgumentException::class, 'Expected query embedding value at index 0.0 to be a float');
+
 it('can get a collection by id', function () {
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
@@ -387,6 +422,30 @@ it('can get a collection by where', function () {
         ->and($collectionItems->ids[0])
         ->toBe('test1');
 });
+
+it('cannot get a collection by where with an invalid operator', function () {
+    $ids = ['test1', 'test2', 'test3'];
+    $embeddings = [
+        [1.0, 2.0, 3.0, 4.0, 5.0],
+        [6.0, 7.0, 8.0, 9.0, 10.0],
+        [11.0, 12.0, 13.0, 14.0, 15.0],
+    ];
+    $metadatas = [
+        ['some' => 'metadata1'],
+        ['some' => 'metadata2'],
+        ['some' => 'metadata3'],
+    ];
+
+    $this->collection->add($ids, $embeddings, $metadatas);
+
+    expect($this->collection->count())->toBe(3);
+
+    $collectionItems = $this->collection->get(
+        where: [
+            'some' => ['$invalid' => 'metadata1']
+        ]
+    );
+})->throws(ChromaException::class);
 
 it('can retrieve items as record objects', function () {
     $this->collection->add([
@@ -456,30 +515,6 @@ it('can retrieve query results as record objects', function () {
         ->and($records[0][0]->distance)->toBeLessThan(0.001);
 });
 
-it('throws a value error when getting a collection by where with an invalid operator', function () {
-    $ids = ['test1', 'test2', 'test3'];
-    $embeddings = [
-        [1.0, 2.0, 3.0, 4.0, 5.0],
-        [6.0, 7.0, 8.0, 9.0, 10.0],
-        [11.0, 12.0, 13.0, 14.0, 15.0],
-    ];
-    $metadatas = [
-        ['some' => 'metadata1'],
-        ['some' => 'metadata2'],
-        ['some' => 'metadata3'],
-    ];
-
-    $this->collection->add($ids, $embeddings, $metadatas);
-
-    expect($this->collection->count())->toBe(3);
-
-    $collectionItems = $this->collection->get(
-        where: [
-            'some' => ['$invalid' => 'metadata1']
-        ]
-    );
-})->throws(ChromaException::class);
-
 it('can delete a collection by id', function () {
     $ids = ['test1', 'test2', 'test3'];
     $embeddings = [
@@ -527,4 +562,3 @@ it('can delete a collection by where', function () {
 
     expect($this->collection->count())->toBe(2);
 });
-

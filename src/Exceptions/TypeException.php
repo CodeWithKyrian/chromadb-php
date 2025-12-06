@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-
 namespace Codewithkyrian\ChromaDB\Exceptions;
 
-class ChromaInvalidArgumentException extends ChromaException {}
+class TypeException extends ChromaException
+{
+
+}

@@ -1,6 +1,5 @@
 <?php
 
-use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Tests\Fixtures\ChromaServer;
 
 uses()

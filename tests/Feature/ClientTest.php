@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Codewithkyrian\ChromaDB\Tests\Feature;
 use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
-use Codewithkyrian\ChromaDB\Exceptions\ChromaNotFoundException;
+use Codewithkyrian\ChromaDB\Exceptions\NotFoundException;
 use Codewithkyrian\ChromaDB\Models\Collection;
 
 beforeEach(function () {
@@ -91,9 +91,9 @@ it('can get a collection', function () {
         ->toHaveProperty('name', 'test_collection');
 });
 
-it('throws a value error when getting a collection that does not exist', function () {
+it('cannot get a collection that does not exist', function () {
     $this->client->getCollection('test_collection_2');
-})->throws(ChromaNotFoundException::class);
+})->throws(NotFoundException::class);
 
 it('can modify a collection name or metadata', function () {
     $this->collection->modify('test_collection_2', ['test' => 'test_2']);
@@ -110,7 +110,7 @@ it('can delete a collection', function () {
     $this->client->deleteCollection('test_collection');
 
     expect(fn() => $this->client->getCollection('test_collection'))
-        ->toThrow(ChromaNotFoundException::class);
+        ->toThrow(NotFoundException::class);
 });
 
 it('can delete all collections', function () {
@@ -131,7 +131,6 @@ it('can delete all collections', function () {
         ->toHaveCount(0);
 });
 
-it('throws a value error when deleting a collection that does not exist', function () {
+it('cannot delete a collection that does not exist', function () {
     $this->client->deleteCollection('test_collection_2');
-})->throws(ChromaNotFoundException::class);
-
+})->throws(NotFoundException::class);

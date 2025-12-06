@@ -2,23 +2,21 @@
 
 declare(strict_types=1);
 
-
 namespace Codewithkyrian\ChromaDB\Exceptions;
 
 class ChromaException extends \Exception
 {
 
-    public static function throwSpecific(string $message, string $type, int $code)
+    public static function create(string $message, string $type, int $code): self
     {
-        throw match ($type) {
-            'NotFoundError' => new ChromaNotFoundException($message, $code),
-            'AuthorizationError' => new ChromaAuthorizationException($message, $code),
-            'ValueError' => new ChromaValueException($message, $code),
-            'UniqueConstraintError' => new ChromaUniqueConstraintException($message, $code),
-            'DimensionalityError' => new ChromaDimensionalityException($message, $code),
-            'InvalidCollection' => new ChromaInvalidCollectionException($message, $code),
-            'TypeError' => new ChromaTypeException($message, $code),
-            'InvalidArgumentError' => new ChromaInvalidArgumentException($message, $code),
+        return match ($type) {
+            'NotFoundError' => new NotFoundException($message, $code),
+            'ValueError' => new ValueException($message, $code),
+            'UniqueConstraintError' => new UniqueConstraintException($message, $code),
+            'DimensionalityError' => new DimensionalityException($message, $code),
+            'InvalidCollection' => new InvalidCollectionException($message, $code),
+            'TypeError' => new TypeException($message, $code),
+            'InvalidArgumentError' => new InvalidArgumentException($message, $code),
             default => new self($message, $code),
         };
     }

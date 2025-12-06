@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-
 namespace Codewithkyrian\ChromaDB\Exceptions;
 
-class ChromaValueException extends ChromaException
+class ValueException extends ChromaException
 {
 
 }

@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Codewithkyrian\ChromaDB\Tests\Feature;
 
 use Codewithkyrian\ChromaDB\ChromaDB;
+use Codewithkyrian\ChromaDB\Exceptions\ChromaException;
+use Codewithkyrian\ChromaDB\Exceptions\InvalidArgumentException;
+use Codewithkyrian\ChromaDB\Exceptions\NotFoundException;
+use Codewithkyrian\ChromaDB\Exceptions\UniqueConstraintException;
 use Codewithkyrian\ChromaDB\Requests\AddItemsRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateCollectionRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateDatabaseRequest;
@@ -28,7 +32,7 @@ afterEach(function () {
 
 it('can get user identity', function () {
     $identity = $this->api->getUserIdentity();
-    
+
     expect($identity)->toBeArray()
         ->and($identity)->toHaveKey('user_id')
         ->and($identity)->toHaveKey('tenant');
@@ -36,59 +40,77 @@ it('can get user identity', function () {
 
 it('can check health', function () {
     $health = $this->api->healthcheck();
-    
+
     expect($health)->toBeArray();
 });
 
 it('can check heartbeat', function () {
     $heartbeat = $this->api->heartbeat();
-    
+
     expect($heartbeat)->toBeArray()
         ->and($heartbeat)->toHaveKey('nanosecond heartbeat');
 });
 
 it('can check pre-flight checks', function () {
     $checks = $this->api->preFlightChecks();
-    
+
     expect($checks)->toBeArray();
 });
 
 it('can get version', function () {
     $version = $this->api->version();
-    
+
     expect($version)->toBeString();
 });
 
 it('can create a tenant', function () {
     $tenantName = 'test-tenant-' . uniqid();
     $this->api->createTenant(new CreateTenantRequest($tenantName));
-    
+
     $tenant = $this->api->getTenant($tenantName);
-    
+
     expect($tenant->name)->toBe($tenantName);
 });
+
+it('cannot create a duplicate tenant', function () {
+    $tenantName = 'test-tenant-' . uniqid();
+    $this->api->createTenant(new CreateTenantRequest($tenantName));
+
+    $this->api->createTenant(new CreateTenantRequest($tenantName));
+})->throws(UniqueConstraintException::class, 'already exists');
 
 it('can get a tenant', function () {
     $tenantName = 'test-tenant-' . uniqid();
     $this->api->createTenant(new CreateTenantRequest($tenantName));
-    
+
     $tenant = $this->api->getTenant($tenantName);
-    
+
     expect($tenant->name)->toBe($tenantName);
 });
+
+it('cannot get a non-existent tenant', function () {
+    $this->api->getTenant('non-existent-tenant');
+})->throws(NotFoundException::class, 'Tenant [non-existent-tenant] not found');
 
 it('can create a database', function () {
     $dbName = 'test-db-' . uniqid();
     $this->api->createDatabase('default_tenant', new CreateDatabaseRequest($dbName));
-    
+
     $database = $this->api->getDatabase($dbName, 'default_tenant');
     expect($database->name)->toBe($dbName);
 });
 
+it('cannot create a duplicate database', function () {
+    $dbName = 'test-db-' . uniqid();
+    $this->api->createDatabase('default_tenant', new CreateDatabaseRequest($dbName));
+
+    $this->api->createDatabase('default_tenant', new CreateDatabaseRequest($dbName));
+})->throws(UniqueConstraintException::class, 'already exists');
+
 it('can list databases', function () {
     $dbName = 'test-db-' . uniqid();
     $this->api->createDatabase('default_tenant', new CreateDatabaseRequest($dbName));
-    
+
     $databases = $this->api->listDatabases('default_tenant');
     expect($databases)->toBeArray();
 });
@@ -96,17 +118,21 @@ it('can list databases', function () {
 it('can get a database', function () {
     $dbName = 'test-db-' . uniqid();
     $this->api->createDatabase('default_tenant', new CreateDatabaseRequest($dbName));
-    
+
     $database = $this->api->getDatabase($dbName, 'default_tenant');
     expect($database->name)->toBe($dbName);
 });
 
+it('cannot get a non-existent database', function () {
+    $this->api->getDatabase('non-existent-db', 'default_tenant');
+})->throws(NotFoundException::class, 'Database [non-existent-db] not found');
+
 it('can delete a database', function () {
     $dbName = 'test-db-' . uniqid();
     $this->api->createDatabase('default_tenant', new CreateDatabaseRequest($dbName));
-    
+
     $this->api->deleteDatabase($dbName, 'default_tenant');
-    
+
     $databases = $this->api->listDatabases('default_tenant');
     $names = array_map(fn($db) => $db->name, $databases);
     expect($names)->not->toContain($dbName);
@@ -115,14 +141,25 @@ it('can delete a database', function () {
 it('can create a collection', function () {
     $collectionName = 'test-collection-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     expect($collection->name)->toBe($collectionName);
 });
+
+it('cannot create a duplicate collection', function () {
+    $collectionName = 'test-collection-' . uniqid();
+    $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
+
+    $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
+})->throws(UniqueConstraintException::class, 'already exists');
+
+it('cannot create a collection with an invalid name', function () {
+    $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest('Invalid Name With Spaces', null));
+})->throws(InvalidArgumentException::class, "Expected a name containing 3-512 characters");
 
 it('can list collections', function () {
     $collectionName = 'test-collection-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     $collections = $this->api->listCollections('default_database', 'default_tenant');
     expect($collections)->toBeArray();
 });
@@ -130,22 +167,26 @@ it('can list collections', function () {
 it('can get a collection', function () {
     $collectionName = 'test-collection-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     $fetchedCollection = $this->api->getCollection($collectionName, 'default_database', 'default_tenant');
     expect($fetchedCollection->id)->toBe($collection->id);
 });
 
+it('cannot get a non-existent collection', function () {
+    $this->api->getCollection('non-existent-collection', 'default_database', 'default_tenant');
+})->throws(NotFoundException::class);
+
 it('can update a collection', function () {
     $collectionName = 'test-collection-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     $collections = $this->api->listCollections('default_database', 'default_tenant');
     $ids = array_map(fn($c) => $c->id, $collections);
     expect($ids)->toContain($collection->id);
 
     $updatedName = 'updated-' . $collectionName;
     $this->api->updateCollection($collection->id, 'default_database', 'default_tenant', new UpdateCollectionRequest($updatedName, ['new' => 'metadata']));
-    
+
     $updatedCollection = $this->api->getCollection($updatedName, 'default_database', 'default_tenant');
     expect($updatedCollection->name)->toBe($updatedName)
         ->and($updatedCollection->metadata)->toBe(['new' => 'metadata']);
@@ -154,32 +195,36 @@ it('can update a collection', function () {
 it('can delete a collection', function () {
     $collectionName = 'test-collection-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     $this->api->deleteCollection($collectionName, 'default_database', 'default_tenant');
-    
+
     $collections = $this->api->listCollections('default_database', 'default_tenant');
     $ids = array_map(fn($c) => $c->id, $collections);
     expect($ids)->not->toContain($collection->id);
 });
 
+it('cannot delete a non-existent collection', function () {
+    $this->api->deleteCollection('non-existent-collection', 'default_database', 'default_tenant');
+})->throws(NotFoundException::class);
+
 it('can count collections', function () {
     $initialCount = $this->api->countCollections('default_database', 'default_tenant');
-    
+
     $collectionName1 = 'test-collection-' . uniqid();
     $collectionName2 = 'test-collection-' . uniqid();
-    
+
     $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName1, null));
     $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName2, null));
-    
+
     $newCount = $this->api->countCollections('default_database', 'default_tenant');
-    
+
     expect($newCount)->toBe($initialCount + 2);
 });
 
 it('can add items to a collection', function () {
     $collectionName = 'test-items-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     $this->api->addCollectionItems($collection->id, 'default_database', 'default_tenant', new AddItemsRequest(
         ids: ['id1', 'id2'],
         embeddings: [[1.1, 2.2], [3.3, 4.4]],
@@ -187,7 +232,7 @@ it('can add items to a collection', function () {
         documents: ['doc1', 'doc2'],
         images: null
     ));
-    
+
     $count = $this->api->countCollectionItems($collection->id, 'default_database', 'default_tenant');
     expect($count)->toBe(2);
 });
@@ -195,7 +240,7 @@ it('can add items to a collection', function () {
 it('can count items in a collection', function () {
     $collectionName = 'test-items-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     $this->api->addCollectionItems($collection->id, 'default_database', 'default_tenant', new AddItemsRequest(
         ids: ['id1'],
         embeddings: [[1.1, 2.2]],
@@ -203,7 +248,7 @@ it('can count items in a collection', function () {
         documents: ['doc1'],
         images: null
     ));
-    
+
     $count = $this->api->countCollectionItems($collection->id, 'default_database', 'default_tenant');
     expect($count)->toBe(1);
 });
@@ -211,7 +256,7 @@ it('can count items in a collection', function () {
 it('can get items from a collection', function () {
     $collectionName = 'test-items-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     $this->api->addCollectionItems($collection->id, 'default_database', 'default_tenant', new AddItemsRequest(
         ids: ['id1', 'id2'],
         embeddings: [[1.1, 2.2], [3.3, 4.4]],
@@ -219,7 +264,7 @@ it('can get items from a collection', function () {
         documents: ['doc1', 'doc2'],
         images: null
     ));
-    
+
     $items = $this->api->getCollectionItems($collection->id, 'default_database', 'default_tenant', new GetEmbeddingRequest(
         ids: ['id1'],
         where: null,
@@ -236,7 +281,7 @@ it('can get items from a collection', function () {
 it('can query items in a collection', function () {
     $collectionName = 'test-items-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     $this->api->addCollectionItems($collection->id, 'default_database', 'default_tenant', new AddItemsRequest(
         ids: ['id1'],
         embeddings: [[1.1, 2.2]],
@@ -244,7 +289,7 @@ it('can query items in a collection', function () {
         documents: ['doc1'],
         images: null
     ));
-    
+
     $query = $this->api->queryCollectionItems($collection->id, 'default_database', 'default_tenant', new QueryItemsRequest(
         queryEmbeddings: [[1.1, 2.2]],
         nResults: 1,
@@ -258,7 +303,7 @@ it('can query items in a collection', function () {
 it('can update items in a collection', function () {
     $collectionName = 'test-items-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     $this->api->addCollectionItems($collection->id, 'default_database', 'default_tenant', new AddItemsRequest(
         ids: ['id1'],
         embeddings: [[1.1, 2.2]],
@@ -266,7 +311,7 @@ it('can update items in a collection', function () {
         documents: ['doc1'],
         images: null
     ));
-    
+
     $this->api->updateCollectionItems($collection->id, 'default_database', 'default_tenant', new UpdateItemsRequest(
         embeddings: [[1.2, 2.3]],
         ids: ['id1'],
@@ -281,7 +326,7 @@ it('can update items in a collection', function () {
 it('can upsert items in a collection', function () {
     $collectionName = 'test-items-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     $this->api->addCollectionItems($collection->id, 'default_database', 'default_tenant', new AddItemsRequest(
         ids: ['id1'],
         embeddings: [[1.1, 2.2]],
@@ -289,7 +334,7 @@ it('can upsert items in a collection', function () {
         documents: ['doc1'],
         images: null
     ));
-    
+
     $this->api->upsertCollectionItems($collection->id, 'default_database', 'default_tenant', new AddItemsRequest(
         embeddings: [[1.3, 2.4], [5.5, 6.6]],
         metadatas: [['key' => 'upserted_value1'], ['key' => 'value3']],
@@ -304,7 +349,7 @@ it('can upsert items in a collection', function () {
 it('can delete items from a collection', function () {
     $collectionName = 'test-items-' . uniqid();
     $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, null));
-    
+
     $this->api->addCollectionItems($collection->id, 'default_database', 'default_tenant', new AddItemsRequest(
         ids: ['id1', 'id2'],
         embeddings: [[1.1, 2.2], [3.3, 4.4]],
@@ -312,7 +357,7 @@ it('can delete items from a collection', function () {
         documents: ['doc1', 'doc2'],
         images: null
     ));
-    
+
     $this->api->deleteCollectionItems($collection->id, 'default_database', 'default_tenant', new DeleteItemsRequest(
         ids: ['id1'],
         where: null,
@@ -321,4 +366,3 @@ it('can delete items from a collection', function () {
     $count = $this->api->countCollectionItems($collection->id, 'default_database', 'default_tenant');
     expect($count)->toBe(1);
 });
-

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Codewithkyrian\ChromaDB;
 
-use Codewithkyrian\ChromaDB\Exceptions\ChromaAuthorizationException;
-use Codewithkyrian\ChromaDB\Exceptions\ChromaConnectionException;
+use Codewithkyrian\ChromaDB\Exceptions\ConnectionException;
 use Codewithkyrian\ChromaDB\Exceptions\ChromaException;
 use Codewithkyrian\ChromaDB\Models\Collection;
 use Codewithkyrian\ChromaDB\Models\Database;
@@ -393,7 +392,7 @@ class Api
         $response = $this->sendRequest('POST', "/api/v2/tenants/$tenant/databases/$database/collections/$collectionId/get", [
             'json' => $request->toArray(),
         ]);
-
+ 
         $result = json_decode($response->getBody()->getContents(), true);
 
         return GetItemsResponse::fromArray($result);
@@ -435,72 +434,6 @@ class Api
         return QueryItemsResponse::fromArray($result);
     }
 
-
-    private function handleErrorResponse(ResponseInterface $response): void
-    {
-        $statusCode = $response->getStatusCode();
-
-        if ($statusCode === 401 || $statusCode === 403) {
-            throw new ChromaAuthorizationException($response->getReasonPhrase(), $statusCode);
-        }
-
-        $errorString = $response->getBody()->getContents();
-
-        if (preg_match('/(?<={"\"error\"\:\")([^"]*)/', $errorString, $matches)) {
-            $errorString = $matches[1];
-        }
-
-        $error = json_decode($errorString, true);
-
-        if ($error !== null) {
-
-            // If the structure is 'error' => 'NotFoundError("Collection not found")'
-            if (
-                preg_match(
-                    '/^(?P<error_type>\w+)\((?P<message>.*)\)$/',
-                    $error['error'] ?? '',
-                    $matches
-                )
-            ) {
-                if (isset($matches['message'])) {
-                    $error_type = $matches['error_type'] ?? 'UnknownError';
-                    $message = $matches['message'];
-
-                    // Remove trailing and leading quotes
-                    if (str_starts_with($message, "'") && str_ends_with($message, "'")) {
-                        $message = substr($message, 1, -1);
-                    }
-
-                    ChromaException::throwSpecific($message, $error_type, $statusCode);
-                }
-            }
-
-            // If the structure is 'detail' => 'Collection not found'
-            if (isset($error['detail'])) {
-                $message = $error['detail'];
-                $error_type = ChromaException::inferTypeFromMessage($message);
-
-
-                ChromaException::throwSpecific($message, $error_type, $statusCode);
-            }
-
-            // If the structure is {'error': 'Error Type', 'message' : 'Error message'}
-            if (isset($error['error']) && isset($error['message'])) {
-                ChromaException::throwSpecific($error['message'], $error['error'], $statusCode);
-            }
-
-            // If the structure is 'error' => 'Collection not found'
-            if (isset($error['error'])) {
-                $message = $error['error'];
-                $error_type = ChromaException::inferTypeFromMessage($message);
-
-                ChromaException::throwSpecific($message, $error_type, $statusCode);
-            }
-        }
-
-        throw new ChromaException($errorString ?: $response->getReasonPhrase(), $statusCode);
-    }
-
     private function sendRequest(string $method, string $path, array $options = []): ResponseInterface
     {
         $uri = $this->baseUri . $path;
@@ -524,7 +457,7 @@ class Api
         try {
             $response = $this->client->sendRequest($request);
         } catch (ClientExceptionInterface $e) {
-            throw new ChromaConnectionException($e->getMessage(), $e->getCode());
+            throw new ConnectionException($e->getMessage(), $e->getCode());
         }
 
         if ($response->getStatusCode() >= 400) {
@@ -532,5 +465,20 @@ class Api
         }
 
         return $response;
+    }
+
+    private function handleErrorResponse(ResponseInterface $response): void
+    {
+        $statusCode = $response->getStatusCode();
+        $body = json_decode($response->getBody()->getContents(), true);
+
+        $errorType = $body['error'] ?? 'UnknownError';
+        $message = $body['message'] ?? 'Unknown error occurred';
+
+        if ($statusCode === 409) {
+            $errorType = 'UniqueConstraintError';
+        }
+
+        throw ChromaException::create($message, $errorType, $statusCode);
     }
 }

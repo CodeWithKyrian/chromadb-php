@@ -6,7 +6,7 @@ namespace Codewithkyrian\ChromaDB;
 
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
 use Codewithkyrian\ChromaDB\Api;
-use Codewithkyrian\ChromaDB\Exceptions\ChromaNotFoundException;
+use Codewithkyrian\ChromaDB\Exceptions\NotFoundException;
 use Codewithkyrian\ChromaDB\Models\Collection;
 use Codewithkyrian\ChromaDB\Requests\CreateDatabaseRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateTenantRequest;
@@ -15,9 +15,9 @@ use Codewithkyrian\ChromaDB\Requests\CreateCollectionRequest;
 class Client
 {
     public function __construct(
-        public readonly Api     $api,
-        public readonly string  $database,
-        public readonly string  $tenant,
+        public readonly Api $api,
+        public readonly string $database,
+        public readonly string $tenant,
     ) {
         $this->initDatabaseAndTenant();
     }
@@ -26,14 +26,14 @@ class Client
     {
         try {
             $this->api->getTenant($this->tenant);
-        } catch (ChromaNotFoundException) {
+        } catch (NotFoundException) {
             $createTenantRequest = new CreateTenantRequest($this->tenant);
             $this->api->createTenant($createTenantRequest);
         }
 
         try {
             $this->api->getDatabase($this->database, $this->tenant);
-        } catch (ChromaNotFoundException) {
+        } catch (NotFoundException) {
             $createDatabaseRequest = new CreateDatabaseRequest($this->database);
             $this->api->createDatabase($this->tenant, $createDatabaseRequest);
         }
@@ -65,7 +65,7 @@ class Client
      */
     public function listCollections(): array
     {
-        return  $this->api->listCollections($this->database, $this->tenant);
+        return $this->api->listCollections($this->database, $this->tenant);
     }
 
 
@@ -104,7 +104,7 @@ class Client
     {
         $request = new CreateCollectionRequest($name, $metadata, true);
 
-        $collection =  $this->api->createCollection($this->database, $this->tenant, $request);
+        $collection = $this->api->createCollection($this->database, $this->tenant, $request);
 
         if ($embeddingFunction) {
             $collection->setEmbeddingFunction($embeddingFunction);
