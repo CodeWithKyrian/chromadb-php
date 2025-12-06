@@ -1,154 +1,22 @@
-## ChromaDB PHP
+# ChromaDB PHP
 
-**A PHP library for interacting with [Chroma](https://github.com/chroma-core/chroma) vector database seamlessly.**
+**A customized, framework-agnostic PHP library for interacting with [Chroma](https://github.com/chroma-core/chroma) vector database seamlessly.**
 
 [![Total Downloads](https://img.shields.io/packagist/dt/codewithkyrian/chromadb-php.svg)](https://packagist.org/packages/codewithkyrian/chromadb-php)
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/codewithkyrian/chromadb-php.svg)](https://packagist.org/packages/codewithkyrian/chromadb-php)
 [![MIT Licensed](https://img.shields.io/badge/license-mit-blue.svg)](https://github.com/CodeWithKyrian/chromadb-php/blob/main/LICENSE)
 [![GitHub Tests Action Status](https://github.com/CodeWithKyrian/chromadb-php/actions/workflows/test.yml/badge.svg)](https://github.com/CodeWithKyrian/chromadb-php/actions/workflows/test.yml)
 
-> **Note:** This package is framework-agnostic, and can be used in any PHP project. If you're using Laravel however, you
-> might want to check out the Laravel-specific package [here](https://github.com/CodeWithKyrian/chromadb-laravel) which
-> provides a more Laravel-like experience, and includes a few extra features.
+> **Note:** This package is framework-agnostic. If you use **Laravel**, check out [chromadb-laravel](https://github.com/CodeWithKyrian/chromadb-laravel) for a tailored experience.
 
-## Description
+## Introduction
 
-[Chroma](https://www.trychroma.com/) is an open-source vector database that allows you to store, search, and analyze high-dimensional data at scale.
-It is designed to be fast, scalable, and reliable. It makes it easy to build LLM (Large Language Model) applications and
-services that require high-dimensional vector search.
-
-ChromaDB PHP provides a simple and intuitive interface for interacting with Chroma from PHP. It enables you to:
-
-- Create, read, update, and delete documents.
-- Execute queries and aggregations.
-- Manage collections and indexes.
-- Handle authentication and authorization.
-- Utilize other ChromaDB features seamlessly.
-- And more...
-
-## Small Example
-
-```php
-use Codewithkyrian\ChromaDB\ChromaDB;
-
-$chromaDB = ChromaDB::local()->connect();
-
-// Check current ChromaDB version
-echo $chromaDB->version();
-
-// Create a collection
-$collection = $chromaDB->createCollection('test-collection');
-
-echo $collection->name; // test-collection
-echo $collection->id; // xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx
-
-// Insert some documents into the collection
-$ids = ['test1', 'test2', 'test3'];
-$embeddings = [
-    [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
-    [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
-    [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0],
-];
-$metadatas = [
-    ['url' => 'https://example.com/test1'],
-    ['url' => 'https://example.com/test2'],
-    ['url' => 'https://example.com/test3'],
-];
-
-$collection->add($ids, $embeddings, $metadatas);
-
-// Search for similar embeddings
-$queryResponse = $collection->query(
-    queryEmbeddings: [
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-    ],
-    nResults: 2
-);
-
-// Print results
-echo $queryResponse->ids[0][0]; // test1
-echo $queryResponse->ids[0][1]; // test2
-
-
-```
+[Chroma](https://www.trychroma.com/) is an open-source vector database designed to be fast, scalable, and reliable. ChromaDB PHP allows you to interact with Chroma servers seamlessly. It provides a fluent, type-safe API for managing collections, documents, and embeddings, making it easy to build LLM-powered applications in PHP.
 
 ## Requirements
 
 - PHP 8.1 or higher
-- ChromaDB 0.4.0 or higher running in client/server mode
-
-## Running ChromaDB
-
-In order to use this library, you need to have ChromaDB running somewhere. You can either run it locally or in the
-cloud.
-
-### Local
-
-You can run ChromaDB locally using the Chroma CLI or Docker.
-
-#### Chroma CLI
-
-You can install the Chroma CLI globally using cURL:
-
-```bash
-curl -sSL https://raw.githubusercontent.com/chroma-core/chroma/main/rust/cli/install/install.sh | bash
-```
-
-And then run the server:
-
-```bash
-chroma run --path /path/to/data
-```
-
-For more installation options and usage details, check the [Chroma CLI Installation Docs](https://docs.trychroma.com/docs/cli/install) and [Run Docs](https://docs.trychroma.com/docs/cli/run).
-
-#### Docker
-
-To run the docker image, you can use the following command:
-
-```bash
-docker run -p 8000:8000 chromadb/chroma
-```
-
-You can also pass in some environment variables using a `.env` file:
-
-```bash
-docker run -p 8000:8000 --env-file .env chromadb/chroma
-```
-
-Or if you prefer using a docker-compose file, you can use the following:
-
-```yaml
-version: '3.9'
-
-services:
-  chroma:
-    image: 'chromadb/chroma'
-    ports:
-      - '8000:8000'
-    volumes:
-      - chroma-data:/chroma/chroma
-
-volumes:
-  chroma-data:
-    driver: local
-```
-
-And then run it using:
-
-```bash
-docker-compose up -d
-```
-
-(Check out the [Chroma Documentation](https://docs.trychroma.com/deployment) for more information on how to run
-ChromaDB.)
-
-Either way, you can now access ChromaDB at `http://localhost:8000`.
-
-### Chroma Cloud
-
-You can sign up for the hosted version of ChromaDB at [Chroma Cloud](https://trychroma.com/). Once you have an account,
-you can create a new project and get your API key.
+- ChromaDB 1.0 or higher
 
 ## Installation
 
@@ -156,488 +24,461 @@ you can create a new project and get your API key.
 composer require codewithkyrian/chromadb-php
 ```
 
-## Usage
+## Configuration & Setup
 
-### Connecting to ChromaDB
+### Running ChromaDB
 
-#### Local Instance
+You need a running ChromaDB instance.
+
+**Docker (Recommended):**
+```bash
+docker run -p 8000:8000 chromadb/chroma
+```
+
+**Chroma CLI:**
+```bash
+chroma run --path /path/to/data
+```
+
+### Connectivity
+
+Connect to your Chroma server. The default connection is `http://localhost:8000`.
 
 ```php
 use Codewithkyrian\ChromaDB\ChromaDB;
 
-$chroma = ChromaDB::local()->connect();
+// Basic Connection
+$client = ChromaDB::local()->connect();
 
-```
+// Custom Host/Port
+$client = ChromaDB::local()
+    ->withHost('http://your-server-ip')
+    ->withPort(8000)
+    ->withTenant('my-tenant')
+    ->withDatabase('production_db')
+    ->connect();
 
-By default, ChromaDB will try to connect to `http://localhost:8000` using the default database name `default_database`
-and default tenant name `default_tenant`. You can however change these values by passing them to the `local` method:
-
-```php
-use Codewithkyrian\ChromaDB\ChromaDB;
-
-$chroma = ChromaDB::local(
-    host: 'http://localhost',
-    port: 8000,
-    tenant: 'new_tenant',
-    database: 'new_database'
-)->connect();    
-
-$chroma = ChromaDB::local(port: 8030)->connect();   
-```
-
-#### Chroma Cloud
-
-To connect to Chroma Cloud, you can use the `cloud` method and pass in your API key:
-
-```php
-use Codewithkyrian\ChromaDB\ChromaDB;
-
-$chroma = ChromaDB::cloud('your-api-key')->connect();
-```
-
-You can also specify the tenant and database if needed:
-
-```php
-use Codewithkyrian\ChromaDB\ChromaDB;
-
-$chroma = ChromaDB::cloud(
-    apiKey: 'your-api-key',
-    tenant: 'new_tenant',
-    database: 'new_database'
-)->connect();
-```
-
-### Configuring the Connection
-
-Both `ChromaDB::local()` and `ChromaDB::cloud()` return a `Factory` instance. This allows you to configure the connection further before establishing it.
-
-#### Setting Host and Port
-
-You can override the host and port using `withHost()` and `withPort()`:
-
-```php
-$chroma = ChromaDB::local()
-    ->withHost('http://custom-host')
-    ->withPort(8080)
+// Chroma Cloud / Authentication
+$client = ChromaDB::cloud('your-api-key')
+    ->withTenant('tenant-id')
     ->connect();
 ```
 
-#### Setting Database and Tenant
+## Embedding Functions
 
-You can specify the database and tenant using `withDatabase()` and `withTenant()`:
+ChromaDB uses embedding functions to convert text into vectors. You can define which function a collection uses upon creation.
+
+Embedding functions are linked to a collection and used when you call `add`, `update`, `upsert` or `query`. If you add documents *without* embeddings, it is used to generate them automatically. If you query using text, it is used to convert your query text into a vector for search.
+
+The library provides lightweight wrappers around popular embedding providers for ease of use:
+
+- `OpenAIEmbeddingFunction`
+- `JinaEmbeddingFunction`
+- `HuggingFaceEmbeddingServerFunction`
+- `OllamaEmbeddingFunction`
+- `MistralAIEmbeddingFunction`
+
+Example:
 
 ```php
-$chroma = ChromaDB::local()
-    ->withDatabase('my_db')
-    ->withTenant('my_tenant')
-    ->connect();
+use Codewithkyrian\ChromaDB\Embeddings\OpenAIEmbeddingFunction;
+
+$ef = new OpenAIEmbeddingFunction('your-openai-api-key');
+
+$collection = $client->createCollection(
+    name: 'knowledge-base',
+    embeddingFunction: $ef
+);
 ```
 
-#### Adding Custom Headers
-
-You can add custom headers to your requests using `withHeader()` or `withHeaders()`. This is useful for passing authentication tokens or other metadata required by your proxy or server.
-
-```php
-$chroma = ChromaDB::local()
-    ->withHeader('Authorization', 'Bearer my-token')
-    ->withHeaders(['X-Custom-Header' => 'custom-value'])
-    ->connect();
-```
-
-### Getting the version
+### Custom Functions
+You can create your own embedding function by implementing `Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction`.
 
 ```php
+use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
 
-echo $chroma->version();
-
-```
-
-### Creating a Collection
-
-Creating a collection is as simple as calling the `createCollection` method on the client and passing in the name of
-the collection.
-
-```php
-
-$collection = $chroma->createCollection('test-collection');
-
-```
-
-If the collection already exists in the database, the package will throw an exception.
-
-### Inserting Documents
-
-```php
-$ids = ['test1', 'test2', 'test3'];
-$embeddings = [
-    [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
-    [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
-    [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0],
-];
-$metadatas = [
-    ['url' => 'https://example.com/test1'],
-    ['url' => 'https://example.com/test2'],
-    ['url' => 'https://example.com/test3'],
-];
-
-$collection->add($ids, $embeddings, $metadatas);
-```
-
-To insert documents into a collection, you need to provide the following:
-
-- `ids`: An array of document ids. The ids must be unique and must be strings.
-- `embeddings`: An array of document embeddings. The embeddings must be a 1D array of floats with a consistent length. You
-  can compute the embeddings using any embedding model of your choice (just make sure that's what you use when querying as
-  well).
-- `metadatas`: An array of document metadatas. The metadatas must be an array of key-value pairs.
-
-If you don't have the embeddings, you can pass in the documents and provide an embedding function that will be used to
-compute the embeddings for you.
-
-### Passing in Embedding Function
-
-To use an embedding function, you need to pass it in as an argument when creating the collection:
-
-```php
-use CodeWithKyrian\ChromaDB\EmbeddingFunction\EmbeddingFunctionInterface;
-
-$embeddingFunction = new OpenAIEmbeddingFunction('api-key', 'org-id', 'model-name');
-
-$collection = $chroma->createCollection('test-collection', embeddingFunction: $embeddingFunction);
-```
-
-The embedding function must be an instance of `EmbeddingFunctionInterface`. There are a few built-in embedding functions
-that you can use:
-
-- `OpenAIEmbeddingFunction`: This embedding function uses the OpenAI API to compute the embeddings. You can use it like
-  this:
-    ```php
-    use CodeWithKyrian\Chroma\EmbeddingFunction\OpenAIEmbeddingFunction;
-    
-    $embeddingFunction = new OpenAIEmbeddingFunction('api-key', 'org-id', 'model-name');
-    
-    $collection = $chromaDB->createCollection('test-collection', embeddingFunction: $embeddingFunction);
-    ```
-  You can get your OpenAI API key and organization id from your [OpenAI dashboard](https://beta.openai.com/), and you
-  can omit the organization id if your API key doesn't belong to an organization. The model name is optional as well and
-  defaults to `text-embedding-ada-002`
-
-- `JinaEmbeddingFunction`: This is a wrapper for the Jina Embedding models. You can use by passing your Jina API key and
-  the desired model. THis defaults to `jina-embeddings-v2-base-en`
-    ```php
-  use Codewithkyrian\ChromaDB\Embeddings\JinaEmbeddingFunction;
-  
-  $embeddingFunction = new JinaEmbeddingFunction('api-key');
-  
-  $collection = $chromaDB->createCollection('test-collection', embeddingFunction: $embeddingFunction);
-    ```
-
-- `HuggingFaceEmbeddingServerFunction`: This embedding function is a wrapper around the HuggingFace Text Embedding
-  Server. Before using it, you need to have
-  the [HuggingFace Embedding Server](https://github.com/huggingface/text-embeddings-inference) running somewhere locally.  Here's how you can use it:
-    ```php
-    use CodeWithKyrian\Chroma\EmbeddingFunction\HuggingFaceEmbeddingFunction;
-    
-    $embeddingFunction = new HuggingFaceEmbeddingFunction('api-key', 'model-name');
-    
-    $collection = $chromaDB->createCollection('test-collection', embeddingFunction: $embeddingFunction);
-    ```
-
-Besides the built-in embedding functions, you can also create your own embedding function by implementing
-the `EmbeddingFunction` interface (including Anonymous Classes):
-
-```php
-use CodeWithKyrian\ChromaDB\EmbeddingFunction\EmbeddingFunctionInterface;
-
-$embeddingFunction = new class implements EmbeddingFunctionInterface {
-    public function generate(array $texts): array
-    {
-        // Compute the embeddings here and return them as an array of arrays
+$ef = new class implements EmbeddingFunction {
+    public function generate(array $texts): array {
+        // Call your model API here and return float[][]
+        return [[0.1, 0.2, ...], ...];
     }
 };
-
-$collection = $chroma->createCollection('test-collection', embeddingFunction: $embeddingFunction);
 ```
 
-> The embedding function will be called for each batch of documents that are inserted into the collection, and must be
-> provided either when creating the collection or when querying the collection. If you don't provide an embedding
-> function, and you don't provide the embeddings, the package will throw an exception.
+## Collections
 
-### Inserting Documents into a Collection with an Embedding Function
+Collections are where you store and categorize your embeddings and documents. All operations are performed on a specific collection.
 
 ```php
-$ids = ['test1', 'test2', 'test3'];
-$documents = [
-    'This is a test document',
-    'This is another test document',
-    'This is yet another test document',
-];
-$metadatas = [
-    ['url' => 'https://example.com/test1'],
-    ['url' => 'https://example.com/test2'],
-    ['url' => 'https://example.com/test3'],
-];
+// Create (throws if exists)
+$collection = $client->createCollection('my-collection', $ef);
 
+// Get (throws if missing)
+$collection = $client->getCollection('my-collection');
+
+// Get or Create =
+$collection = $client->getOrCreateCollection('my-collection', $ef);
+
+// Delete
+$client->deleteCollection('my-collection');
+```
+
+## Adding Data
+
+You can add items to a collection using the structured `Record` class or raw arrays. Both methods represent the same data:
+
+- **IDs** (Required): Unique string identifier.
+- **Embeddings**: Vector representation (float array).
+- **Documents**: Raw text content.
+- **Metadatas**: Key-value pairs for filtering.
+
+### Using Arrays
+You can pass a parallel arrays of IDs, embeddings, metadatas, etc. This is useful for bulk operations.
+
+```php
 $collection->add(
-    ids: $ids, 
-    documents: $documents, 
-    metadatas: $metadatas
-);
-```
-
-### Getting a Collection
-
-```php
-$collection = $chromaDB->getCollection('test-collection');
-```
-
-Or with an embedding function:
-
-```php
-$collection = $chromaDB->getCollection('test-collection', embeddingFunction: $embeddingFunction);
-```
-
-> Make sure that the embedding function you provide is the same one that was used when creating the collection.
-
-### Counting the items in a collection
-
-```php
-$collection->count() // 2
-```
-
-### Updating a collection
-
-```php
-$collection->update(
-    ids: ['test1', 'test2', 'test3'],
-    embeddings: [
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
-        [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0],
-    ],
+    ids: ['id1', 'id2'],
+    documents: ['This is a document about PHP.', 'ChromaDB is great for AI.'],
+    embeddings: [[0.1, 0.2, 0.3], [0.9, 0.8, 0.7]],
     metadatas: [
-        ['url' => 'https://example.com/test1'],
-        ['url' => 'https://example.com/test2'],
-        ['url' => 'https://example.com/test3'],
+        ['category' => 'development', 'author' => 'Kyrian'],
+        ['category' => 'ai', 'is_published' => true]
     ]
 );
 ```
 
-### Deleting Documents
+### Using Records (Fluent API)
+The `Record` class provides a fluent interface for building items. It mirrors the array structure but in an object-oriented way.
 
 ```php
-$collection->delete(['test1', 'test2', 'test3']);
+use Codewithkyrian\ChromaDB\Types\Record;
+
+$collection->add([
+    // Fluent Factory style
+    Record::make('id4')
+        ->withDocument('This is a document about PHP.')
+        ->withEmbedding([0.1, 0.2, 0.3])
+        ->withMetadata(['category' => 'development', 'author' => 'Kyrian']),
+
+    // Constructor style
+    new Record(
+        id: 'id7',
+        document: 'ChromaDB is great for AI.',
+        embedding: [0.9, 0.8, 0.7],
+        metadata: ['category' => 'ai', 'is_published' => true]
+    ),
+]);
 ```
 
-### Querying a Collection
+If you provide `documents` but *omit* `embeddings`, Chroma uses the collection's **Embedding Function** to generate them. This is useful if you have an external embedding function or if you want to manually control the embedding process. When providing just embeddings and not documents, it's assumed you're storing the documents elsewhere and associating the provided embeddings with those documents using the `ids` or any other metadata.
+
+> If the supplied embeddings are not the same dimension as the embeddings already indexed in the collection, an exception will be raised.
+
+## Retrieval (`get` and `peek`)
+
+Retrieve specific items by ID or filtered metadata without generating embeddings.
+
+### Get
+Fetch specific items.
 
 ```php
-$queryResponse = $collection->query(
-    queryEmbeddings: [
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-    ],
-    nResults: 2
+use Codewithkyrian\ChromaDB\Types\Includes;
+
+// Fetch by ID
+$item = $collection->get(ids: ['id1']);
+
+// Fetch filtered items (Metadata Filter)
+$items = $collection->get(
+    where: ['category' => 'php'], 
+    include: [Includes::Documents, Includes::Metadatas]
 );
 
-echo $queryResponse->ids[0][0]; // test1
-echo $queryResponse->ids[0][1]; // test2
+// Fetch items as Record objects
+$records = $items->asRecords();
 ```
 
-To query a collection, you need to provide the following:
-
-- `queryEmbeddings` (optional): An array of query embeddings. The embeddings must be a 1D array of floats. You
-  can compute the embeddings using any embedding model of your choice (just make sure that's what you use when inserting
-  as
-  well).
-- `nResults`: The number of results to return. Defaults to 10.
-- `queryTexts` (optional): An array of query texts. The texts must be strings. You can omit this if you provide the
-  embeddings. Here's
-  an example:
-    ```php
-    $queryResponse = $collection->query(
-        queryTexts: [
-            'This is a test document'
-        ],
-        nResults: 2
-    );
-    
-    echo $queryResponse->ids[0][0]; // test1
-    echo $queryResponse->ids[0][1]; // test2
-    ```
-- `where` (optional): The where clause to use to filter items based on their metadata. Here's an example:
-  ```php
-  $queryResponse = $collection->query(
-      queryEmbeddings: [
-          [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-      ],
-      nResults: 2,
-      where: [
-          'url' => 'https://example.com/test1'
-      ]
-  );
-      
-  echo $queryResponse->ids[0][0]; // test1
-  ```
-  The where clause must be an array of key-value pairs. The key must be a string, and the value can be a string or
-  an array of valid filter values. Here are the valid filters (`$eq`, `$ne`, `$in`, `$nin`, `$gt`, `$gte`, `$lt`,
-  `$lte`):
-    - `$eq`: Equals
-    - `$ne`: Not equals
-    - `$gt`: Greater than
-    - `$gte`: Greater than or equal to
-    - `$lt`: Less than
-    - `$lte`: Less than or equal to
-
-  Here's an example:
-  ```php
-    $queryResponse = $collection->query(
-        queryEmbeddings: [
-            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-        ],
-        nResults: 2,
-        where: [
-            'url' => [
-                '$eq' => 'https://example.com/test1'
-            ]
-        ]
-    );
-  ```
-  You can also use multiple filters:
-    ```php
-        $queryResponse = $collection->query(
-            queryEmbeddings: [
-                [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-            ],
-            nResults: 2,
-            where: [
-                'url' => [
-                    '$eq' => 'https://example.com/test1'
-                ],
-                'title' => [
-                    '$ne' => 'Test 1'
-                ]
-            ]
-        );
-    ```
-- `whereDocument` (optional): The where clause to use to filter items based on their document. Here's an example:
-  ```php
-  $queryResponse = $collection->query(
-      queryEmbeddings: [
-          [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-      ],
-      nResults: 2,
-      whereDocument: [
-          'text' => 'This is a test document'
-      ]
-  );
-          
-  echo $queryResponse->ids[0][0]; // test1
-  ```
-  The where clause must be an array of key-value pairs. The key must be a string, and the value can be a string or
-  an array of valid filter values. In this case, only two filtering keys are supported - `$contains`
-  and `$not_contains`.
-
-  Here's an example:
-  ```php
-    $queryResponse = $collection->query(
-        queryEmbeddings: [
-            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-        ],
-        nResults: 2,
-        whereDocument: [
-            'text' => [
-                '$contains' => 'test document'
-            ]
-        ]
-    );
-  ```
-- `include` (optional): An array of fields to include in the response. Possible values
-  are `embeddings`, `documents`, `metadatas` and `distances`. It defaults to `embeddings`
-  and `metadatas` (`documents` are not included by default because they can be large).
-  ```php
-  $queryResponse = $collection->query(
-      queryEmbeddings: [
-          [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-      ],
-      nResults: 2,
-      include: ['embeddings']
-  );
-  ```
-  `distances` is only valid for querying and not for getting. It returns the distances between the query embeddings
-  and the embeddings of the results.
-
-Other relevant information about querying and retrieving a collection can be found in the [ChromaDB Documentation](https://docs.trychroma.com/usage-guide).
-
-### Deleting items in a collection
-
-To delete the documents in a collection, pass in an array of the ids of the items:
+### Peek
+Preview the first `n` items in the collection.
 
 ```php
-$collection->delete(['test1', 'test2']);
-
-$collection->count() // 1
+$preview = $collection->peek(limit: 5);
 ```
 
-Passing the ids is optional. You can delete items from a collection using a where filter:
+### Specifying Return Data (`include`)
+Both `get` and `query` allow you to specify what data to return using the `include` parameter.
 
 ```php
-$collection->add(
-    ['test1', 'test2', 'test3'],
-    [
-        [1.0, 2.0, 3.0, 4.0, 5.0],
-        [6.0, 7.0, 8.0, 9.0, 10.0],
-        [11.0, 12.0, 13.0, 14.0, 15.0],
-    ], 
-     [
-        ['some' => 'metadata1'],
-        ['some' => 'metadata2'],
-        ['some' => 'metadata3'],
+use Codewithkyrian\ChromaDB\Types\Includes;
+
+$collection->get(
+    ids: ['id1'],
+    include: [
+        Includes::Documents, // Return the document text
+        Includes::Metadatas, // Return the metadata
+        Includes::Embeddings // Return the vector
     ]
 );
-
-$collection->delete(
-    where: [
-        'some' => 'metadata1'
-    ]
-);
-
-$collection->count() // 2
 ```
+> **Note:** `Includes::Distances` is only available when **Querying**, not when using `get()`.
 
-### Deleting a collection
+## Querying (Vector Search)
 
-Deleting a collection is as simple as passing in the name of the collection to be deleted.
+Querying is about finding items *semantically similar* to your input. Chroma performs a vector search to find the nearest neighbors. ChromaDB-PHP also provides a powerful, fluent query builder for filtering by metadata and document content.
+
+### Query by Text
+
+Provide text strings. Chroma embeds them using the collection's Embedding Function and finds the nearest neighbors.
+
 
 ```php
-$chroma->deleteCollection('test_collection');
+$results = $collection->query(
+    queryTexts: ['How do I use PHP with Chroma?'], 
+    nResults: 5 // Return top 5 matches
+);
+
+// Get results as ScoredRecord objects
+// Returns ScoredRecord[][] (one array of results per query text)
+$records = $results->asRecords();
+```
+
+### Query by Embeddings
+Provide raw vectors. Useful if you compute embeddings externally.
+
+```php
+$results = $collection->query(
+    queryEmbeddings: [[0.1, 0.2, ...]], 
+    nResults: 5
+);
+```
+
+### Specifying Return Data (`include`)
+
+By default, queries return IDs, Embeddings, Metadatas, and Distances. You can customize this using the `Includes` enum to optimize performance.
+
+```php
+use Codewithkyrian\ChromaDB\Types\Includes;
+
+$collection->query(
+    queryTexts: ['How do I use PHP with Chroma?'], 
+    nResults: 5,
+    include: [
+        Includes::Documents, // Return the actual text content
+        Includes::Distances // Return the similarity score
+    ]
+);
+```
+
+### Metadata Filtering (`where`)
+You can filter search results based on metadata of the items. The library provides a fluent **Builder** for safety, but also supports raw arrays.
+
+### Supported Comparisons
+
+```php
+// Equals
+Where::field('category')->eq('news');
+['category' => ['$eq' => 'news']];
+
+// Not Equals
+Where::field('status')->ne('archived');
+['status' => ['$ne' => 'archived']];
+
+// Greater Than
+Where::field('views')->gt(100);
+['views' => ['$gt' => 100]];
+
+// Less Than
+Where::field('rating')->lt(5);
+['rating' => ['$lt' => 5]];
+
+// Greater Than or Equal To
+Where::field('views')->gte(100);
+['views' => ['$gte' => 100]];
+
+// Less Than or Equal To
+Where::field('rating')->lte(5);
+['rating' => ['$lte' => 5]];
+
+// List inclusion
+Where::field('tag')->in(['php', 'laravel']);
+['tag' => ['$in' => ['php', 'laravel']]];
+
+// List exclusion
+Where::field('tag')->nin(['php', 'laravel']);
+['tag' => ['$nin' => ['php', 'laravel']]];
+
+// Logical AND
+Where::all(
+    Where::field('category')->eq('code'),
+    Where::field('language')->eq('php')
+) ;
+['$and' => [
+    ['category' => ['$eq' => 'code']],
+    ['language' => ['$eq' => 'php']]
+]]
+
+// Logical OR
+Where::any(
+    Where::field('category')->eq('code'),
+    Where::field('language')->eq('php')
+) ;
+['$or' => [
+    ['category' => ['$eq' => 'code']],
+    ['language' => ['$eq' => 'php']]
+]]
+```
+
+#### Usage
+
+```php
+$collection->query(
+    queryTexts: ['How do I use PHP with Chroma?'], 
+    nResults: 5,
+    where: Where::field('category')->eq('code')
+);
+
+$collection->query(
+    queryTexts: ['How do I use PHP with Chroma?'], 
+    nResults: 5,
+    where: ['category' => ['$eq' => 'code']]
+);
+
+$collection->query(
+    queryTexts: ['How do I use PHP with Chroma?'], 
+    nResults: 5,
+    where: Where::all(
+        Where::field('category')->eq('code'),
+        Where::field('language')->eq('php')
+    )
+);
+
+$collection->query(
+    queryTexts: ['How do I use PHP with Chroma?'], 
+    nResults: 5,
+    where: ['$and' => [
+        ['category' => ['$eq' => 'code']],
+        ['language' => ['$eq' => 'php']]
+    ]]
+);
+```
+
+### Full Text Search (`whereDocument`)
+
+Used to filter based on the text content of the document itself. This supports **substring matching** and **Regex**. You can also use the fluent builder or array syntax.
+
+#### Supported Comparisons
+
+```php
+// Substring (Contains)
+Where::document()->contains('search term')
+['$contains' => 'search term']
+
+// Substring (Not Contains)
+Where::document()->notContains('spam')
+['$not_contains' => 'spam']
+
+// Regex Matching
+Where::document()->matches('^PHP 8\.[0-9]+')
+['$regex' => '^PHP 8\.[0-9]+']
+
+Where::document()->notMatches('deprecated')
+['$not_regex' => 'deprecated']
+
+// Logical OR
+Where::any(
+    Where::document()->contains('php'),
+    Where::document()->contains('laravel')
+)
+['$or' => [
+    ['document' => ['$contains' => 'php']],
+    ['document' => ['$contains' => 'laravel']]
+]]
+
+// Logical AND
+Where::all(
+    Where::document()->contains('php'),
+    Where::document()->contains('laravel')
+)
+['$and' => [
+    ['document' => ['$contains' => 'php']],
+    ['document' => ['$contains' => 'laravel']]
+]]
+```
+
+#### Usage
+
+```php
+$collection->query(
+    queryTexts: ['How do I use PHP with Chroma?'], 
+    nResults: 5,
+    whereDocument: Where::document()->contains('php')
+);
+
+$collection->query(
+    queryTexts: ['How do I use PHP with Chroma?'], 
+    nResults: 5,
+    whereDocument: ['$contains' => 'php']
+);
+
+$collection->query(
+    queryTexts: ['How do I use PHP with Chroma?'], 
+    nResults: 5,
+    whereDocument: Where::any(
+        Where::document()->contains('php'),
+        Where::document()->contains('laravel')
+    )
+);
+
+$collection->query(
+    queryTexts: ['How do I use PHP with Chroma?'], 
+    nResults: 5,
+    whereDocument: ['$or' => [
+        ['$contains' => 'php'],
+        ['$contains' => 'laravel']
+    ]]
+);
+```
+
+## Updating Data
+
+Use `update` to modify existing items (fails if ID missing) or `upsert` to update-or-create. Just like adding, you can either pass an array of records, or a parallel array of IDs, documents, and metadatas.
+
+```php
+// Update using Records
+$collection->update([
+    Record::make('id1')->withMetadata(['updated' => true])
+]);
+
+// Upsert using Arrays
+$collection->upsert(
+    ids: ['id_new'],
+    documents: ['New document content'],
+    metadatas: [['created' => 'now']]
+);
+```
+
+## Deleting Data
+
+Delete by IDs or by filter.
+
+```php
+// Delete specific items
+$collection->delete(['id1', 'id2']);
+
+// Delete all items matching a filter
+$collection->delete(where: Where::field('category')->eq('outdated'));
+
+// Delete all items matching a document content filter
+$collection->delete(whereDocument: Where::document()->contains('outdated'));
 ```
 
 ## Testing
 
-## Testing
-
-To run the tests, make sure you have the Chroma CLI installed and globally accessible. The tests will automatically start the server on port 8000.
+Run the test suite using Pest.
 
 ```bash
 composer test
 ```
 
-## Contributors
-
-- [Kyrian Obikwelu](https://github.com/CodeWithKyrian)
-- Other contributors are welcome.
-
 ## License
 
-This project is licensed under the MIT License. See
-the [LICENSE](https://github.com/codewithkyrian/chromadb-php/blob/main/LICENSE) file for more information.
-
-
-
-
-
-
-
-
-
-
+MIT License. See [LICENSE](LICENSE) for more information.

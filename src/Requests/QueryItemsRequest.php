@@ -22,7 +22,7 @@ class QueryItemsRequest
         public readonly ?array $include,
     ) {}
 
-    public static function create(array $data): self
+    public static function fromArray(array $data): self
     {
         return new self(
             where: $data['where'] ?? null,

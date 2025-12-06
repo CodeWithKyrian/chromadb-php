@@ -39,7 +39,8 @@ class Api
         public readonly StreamFactoryInterface $streamFactory,
         public readonly string $baseUri,
         public readonly array $headers = [],
-    ) {}
+    ) {
+    }
 
     /**
      * Retrieves the current user's identity, tenant, and databases.
@@ -62,7 +63,7 @@ class Api
     {
         $response = $this->sendRequest('GET', "/api/v2/collections/{$crn}");
 
-        return Collection::make(json_decode($response->getBody()->getContents(), true), $this, $database, $tenant);
+        return Collection::fromArray(json_decode($response->getBody()->getContents(), true), $this, $database, $tenant);
     }
 
     /**
@@ -134,7 +135,7 @@ class Api
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return Tenant::make($result);
+        return Tenant::fromArray($result);
     }
 
     /**
@@ -180,7 +181,7 @@ class Api
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return array_map(fn(array $item) => Database::make($item), $result);
+        return array_map(fn(array $item) => Database::fromArray($item), $result);
     }
 
     /**
@@ -197,7 +198,7 @@ class Api
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return Database::make($result);
+        return Database::fromArray($result);
     }
 
     /**
@@ -232,7 +233,7 @@ class Api
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return array_map(fn(array $item) => Collection::make($item, $this, $database, $tenant), $result);
+        return array_map(fn(array $item) => Collection::fromArray($item, $this, $database, $tenant), $result);
     }
 
     /**
@@ -252,7 +253,7 @@ class Api
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return Collection::make($result, $this, $database, $tenant);
+        return Collection::fromArray($result, $this, $database, $tenant);
     }
 
     /**
@@ -270,7 +271,7 @@ class Api
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return Collection::make($result, $this, $database, $tenant);
+        return Collection::fromArray($result, $this, $database, $tenant);
     }
 
     /**
@@ -395,7 +396,7 @@ class Api
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return GetItemsResponse::from($result);
+        return GetItemsResponse::fromArray($result);
     }
 
     /**
@@ -431,7 +432,7 @@ class Api
 
         $result = json_decode($response->getBody()->getContents(), true);
 
-        return QueryItemsResponse::from($result);
+        return QueryItemsResponse::fromArray($result);
     }
 
 
@@ -454,11 +455,13 @@ class Api
         if ($error !== null) {
 
             // If the structure is 'error' => 'NotFoundError("Collection not found")'
-            if (preg_match(
-                '/^(?P<error_type>\w+)\((?P<message>.*)\)$/',
-                $error['error'] ?? '',
-                $matches
-            )) {
+            if (
+                preg_match(
+                    '/^(?P<error_type>\w+)\((?P<message>.*)\)$/',
+                    $error['error'] ?? '',
+                    $matches
+                )
+            ) {
                 if (isset($matches['message'])) {
                     $error_type = $matches['error_type'] ?? 'UnknownError';
                     $message = $matches['message'];
