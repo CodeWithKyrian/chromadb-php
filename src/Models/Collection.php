@@ -14,6 +14,8 @@ use Codewithkyrian\ChromaDB\Requests\UpdateCollectionRequest;
 use Codewithkyrian\ChromaDB\Requests\UpdateItemsRequest;
 use Codewithkyrian\ChromaDB\Responses\GetItemsResponse;
 use Codewithkyrian\ChromaDB\Responses\QueryItemsResponse;
+use Codewithkyrian\ChromaDB\Types\Includes;
+use Codewithkyrian\ChromaDB\Types\Record;
 
 class Collection
 {
@@ -27,16 +29,17 @@ class Collection
      * @param EmbeddingFunction|null $embeddingFunction Optional embedding function. Must match the one used to create the collection.
      */
     public function __construct(
-        public readonly Api       $api,
-        public readonly string    $name,
-        public readonly string    $id,
-        public readonly ?array    $metadata = null,
-        public readonly ?string   $database = null,
-        public readonly ?string   $tenant = null,
+        public readonly Api $api,
+        public readonly string $name,
+        public readonly string $id,
+        public readonly ?array $metadata = null,
+        public readonly ?string $database = null,
+        public readonly ?string $tenant = null,
         public ?EmbeddingFunction $embeddingFunction = null,
-    ) {}
+    ) {
+    }
 
-    public static function make(array $data, Api $api, string $database, string $tenant): self
+    public static function fromArray(array $data, Api $api, string $database, string $tenant): self
     {
         return new self(
             api: $api,
@@ -60,7 +63,7 @@ class Collection
     /**
      * Add items to the collection.
      *
-     * @param string[] $ids The IDs of the items to add.
+     * @param string[]|Record[] $ids The IDs of the items to add, or an array of Record objects.
      * @param number[][]|null $embeddings The embeddings of the items to add (optional).
      * @param array<string, array<string, mixed>>|null $metadatas The metadatas of the items to add (optional).
      * @param string[]|null $documents The documents of the items to add (optional).
@@ -68,12 +71,29 @@ class Collection
      * @return void
      */
     public function add(
-        array  $ids,
+        array $ids,
         ?array $embeddings = null,
         ?array $metadatas = null,
         ?array $documents = null,
         ?array $images = null
     ): void {
+        if (!empty($ids) && $ids[0] instanceof Record) {
+            $records = $ids;
+            $ids = [];
+            $embeddings = [];
+            $metadatas = [];
+            $documents = [];
+            $images = [];
+
+            foreach ($records as $record) {
+                $ids[] = $record->id;
+                $embeddings[] = $record->embedding;
+                $metadatas[] = $record->metadata;
+                $documents[] = $record->document;
+                $images[] = $record->image;
+            }
+        }
+
         $validated = $this->validate(
             ids: $ids,
             embeddings: $embeddings,
@@ -97,7 +117,7 @@ class Collection
     /**
      * Update the embeddings, documents, and/or metadatas of existing items.
      *
-     * @param string[] $ids The IDs of the items to update.
+     * @param string[]|Record[] $ids The IDs of the items to update, or an array of Record objects.
      * @param number[][]|null $embeddings The embeddings of the items to update (optional).
      * @param array<string, array<string, mixed>>|null $metadatas The metadatas of the items to update (optional).
      * @param string[]|null $documents The documents of the items to update (optional).
@@ -105,12 +125,29 @@ class Collection
      *
      */
     public function update(
-        array  $ids,
+        array $ids,
         ?array $embeddings = null,
         ?array $metadatas = null,
         ?array $documents = null,
         ?array $images = null
     ) {
+        if (!empty($ids) && $ids[0] instanceof Record) {
+            $records = $ids;
+            $ids = [];
+            $embeddings = [];
+            $metadatas = [];
+            $documents = [];
+            $images = [];
+
+            foreach ($records as $record) {
+                $ids[] = $record->id;
+                $embeddings[] = $record->embedding;
+                $metadatas[] = $record->metadata;
+                $documents[] = $record->document;
+                $images[] = $record->image;
+            }
+        }
+
         $validated = $this->validate(
             ids: $ids,
             embeddings: $embeddings,
@@ -134,7 +171,7 @@ class Collection
     /**
      * Upsert items in the collection.
      *
-     * @param string[] $ids The IDs of the items to upsert.
+     * @param string[]|Record[] $ids The IDs of the items to upsert, or an array of Record objects.
      * @param number[][]|null $embeddings The embeddings of the items to upsert (optional).
      * @param array<string, array<string, mixed>>|null $metadatas The metadatas of the items to upsert (optional).
      * @param string[]|null $documents The documents of the items to upsert (optional).
@@ -142,12 +179,29 @@ class Collection
      *
      */
     public function upsert(
-        array  $ids,
+        array $ids,
         ?array $embeddings = null,
         ?array $metadatas = null,
         ?array $documents = null,
         ?array $images = null
     ): void {
+        if (!empty($ids) && $ids[0] instanceof Record) {
+            $records = $ids;
+            $ids = [];
+            $embeddings = [];
+            $metadatas = [];
+            $documents = [];
+            $images = [];
+
+            foreach ($records as $record) {
+                $ids[] = $record->id;
+                $embeddings[] = $record->embedding;
+                $metadatas[] = $record->metadata;
+                $documents[] = $record->document;
+                $images[] = $record->image;
+            }
+        }
+
         $validated = $this->validate(
             ids: $ids,
             embeddings: $embeddings,
@@ -179,22 +233,24 @@ class Collection
     /**
      * Get items from the collection.
      *
-     * @param array $ids The IDs of the items to get (optional).
-     * @param array $where The where clause to filter items by (optional).
-     * @param array $whereDocument The where clause to filter items by (optional).
-     * @param int $limit The limit on the number of items to get (optional).
-     * @param int $offset The offset on the number of items to get (optional).
-     * @param string[] $include The list of fields to include in the response (optional).
+     * @param array|null $ids The IDs of the items to get (optional).
+     * @param array|null $where The where clause to filter items by (optional).
+     * @param array|null $whereDocument The where clause to filter items by (optional).
+     * @param int|null $limit The limit on the number of items to get (optional).
+     * @param int|null $offset The offset on the number of items to get (optional).
+     * @param string[]|Includes[]|null $include The list of fields to include in the response (optional).
      */
     public function get(
         ?array $ids = null,
         ?array $where = null,
         ?array $whereDocument = null,
-        ?int   $limit = null,
-        ?int   $offset = null,
+        ?int $limit = null,
+        ?int $offset = null,
         ?array $include = null
     ): GetItemsResponse {
         $include ??= ['embeddings', 'metadatas', 'distances'];
+
+        $include = array_map(fn($i) => $i instanceof Includes ? $i->value : $i, $include);
 
         $request = new GetEmbeddingRequest(
             ids: $ids,
@@ -212,16 +268,19 @@ class Collection
      * Retrieves a preview of records from the collection.
      *
      * @param int $limit The number of entries to return. Defaults to 10.
-     * @param string[] $include The list of fields to include in the response (optional).
-    */
-    public function peek(int $limit = 10, ?array $include = null): GetItemsResponse {
+     * @param string[]|Includes[]|null $include The list of fields to include in the response (optional).
+     */
+    public function peek(int $limit = 10, ?array $include = null): GetItemsResponse
+    {
         $include ??= ['embeddings', 'metadatas', 'distances'];
-        
+
+        $include = array_map(fn($i) => $i instanceof Includes ? $i->value : $i, $include);
+
         $request = new GetEmbeddingRequest(
             limit: $limit,
             include: $include,
         );
-        
+
         return $this->api->getCollectionItems($this->id, $this->database, $this->tenant, $request);
     }
 
@@ -252,21 +311,23 @@ class Collection
      * @param int $nResults The number of results to return (optional).
      * @param ?array $where The where clause to filter items to search based on metadata values (optional).
      * @param ?array $whereDocument The where clause to filter to search based on document content (optional).
-     * @param ?array $include The list of fields to include in the response (optional).
+     * @param string[]|Includes[]|null $include The list of fields to include in the response (optional).
      */
     public function query(
         ?array $queryEmbeddings = null,
         ?array $queryTexts = null,
         ?array $queryImages = null,
-        int    $nResults = 10,
+        int $nResults = 10,
         ?array $where = null,
         ?array $whereDocument = null,
         ?array $include = null
     ): QueryItemsResponse {
         $include ??= ['embeddings', 'metadatas', 'distances'];
 
+        $include = array_map(fn($i) => $i instanceof Includes ? $i->value : $i, $include);
+
         if (
-            !(($queryEmbeddings != null xor $queryTexts  != null xor $queryImages != null))
+            !(($queryEmbeddings != null xor $queryTexts != null xor $queryImages != null))
         ) {
             throw new \InvalidArgumentException(
                 'You must provide only one of queryEmbeddings, queryTexts, queryImages, or queryUris'
@@ -290,6 +351,8 @@ class Collection
                 );
             }
         } else {
+
+
             $finalEmbeddings = $queryEmbeddings;
         }
 
@@ -326,13 +389,13 @@ class Collection
      * @return array{ids: string[], embeddings: int[][], metadatas: array[], documents: string[], images: string[], uris: string[]}
      */
     protected
-    function validate(
-        array  $ids,
+        function validate(
+        array $ids,
         ?array $embeddings,
         ?array $metadatas,
         ?array $documents,
         ?array $images,
-        bool   $requireEmbeddingsOrDocuments
+        bool $requireEmbeddingsOrDocuments
     ): array {
 
         if ($requireEmbeddingsOrDocuments) {
@@ -373,7 +436,7 @@ class Collection
         }
 
         $ids = array_map(function ($id) {
-            $id = (string)$id;
+            $id = (string) $id;
             if ($id === '') {
                 throw new \InvalidArgumentException('Expected IDs to be non-empty strings');
             }

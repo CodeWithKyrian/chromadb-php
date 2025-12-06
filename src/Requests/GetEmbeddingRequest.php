@@ -27,9 +27,10 @@ class GetEmbeddingRequest
         public readonly ?int $limit = null,
         public readonly ?int $offset = null,
         public readonly ?array $include = null,
-    ) {}
+    ) {
+    }
 
-    public static function create(array $data): self
+    public static function fromArray(array $data): self
     {
         return new self(
             ids: $data['ids'] ?? null,
@@ -47,7 +48,7 @@ class GetEmbeddingRequest
         return array_filter([
             'ids' => $this->ids,
             'where' => $this->where,
-            'whereDocument' => $this->whereDocument,
+            'where_document' => $this->whereDocument,
             'sort' => $this->sort,
             'limit' => $this->limit,
             'offset' => $this->offset,

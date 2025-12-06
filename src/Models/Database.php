@@ -22,9 +22,10 @@ class Database
          * Tenant of the database.
          */
         public readonly ?string $tenant,
-    ) {}
+    ) {
+    }
 
-    public static function make(array $data): self
+    public static function fromArray(array $data): self
     {
         return new self(
             id: $data['id'],
