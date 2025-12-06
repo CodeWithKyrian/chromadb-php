@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace Codewithkyrian\ChromaDB\Tests\Feature;
+
 use Codewithkyrian\ChromaDB\ChromaDB;
 use Codewithkyrian\ChromaDB\Embeddings\EmbeddingFunction;
 use Codewithkyrian\ChromaDB\Exceptions\NotFoundException;
@@ -104,6 +105,24 @@ it('can modify a collection name or metadata', function () {
         ->toBe('test_collection_2')
         ->and($collection->metadata)
         ->toMatchArray(['test' => 'test_2']);
+});
+
+it('can fork a collection', function () {
+    if (str_contains($this->client->api->baseUri, 'localhost') || !str_contains($this->client->api->baseUri, 'api.trychroma.com')) {
+        test()->markTestSkipped('Collection forking is not supported for local Chroma');
+    }
+
+    $forkedCollection = $this->client->forkCollection('test_collection', 'test_collection_fork', $this->embeddingFunction);
+
+    expect($forkedCollection)
+        ->toBeInstanceOf(Collection::class)
+        ->toHaveProperty('name', 'test_collection_fork')
+        ->and($forkedCollection->id)->not->toBe($this->collection->id);
+
+    $collections = $this->client->listCollections();
+    $names = array_map(fn($c) => $c->name, $collections);
+    expect($names)->toContain('test_collection')
+        ->and($names)->toContain('test_collection_fork');
 });
 
 it('can delete a collection', function () {

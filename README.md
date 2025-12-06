@@ -119,6 +119,10 @@ $collection = $client->getCollection('my-collection');
 // Get or Create =
 $collection = $client->getOrCreateCollection('my-collection', $ef);
 
+// Fork (creates a copy of an existing collection)
+// Note: Forking is only supported for Chroma Cloud, not local Chroma instances
+$forkedCollection = $client->forkCollection('my-collection', 'my-collection-fork', $ef);
+
 // Delete
 $client->deleteCollection('my-collection');
 ```

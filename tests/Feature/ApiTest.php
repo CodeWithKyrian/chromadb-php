@@ -13,6 +13,7 @@ use Codewithkyrian\ChromaDB\Requests\CreateCollectionRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateDatabaseRequest;
 use Codewithkyrian\ChromaDB\Requests\CreateTenantRequest;
 use Codewithkyrian\ChromaDB\Requests\DeleteItemsRequest;
+use Codewithkyrian\ChromaDB\Requests\ForkCollectionRequest;
 use Codewithkyrian\ChromaDB\Requests\GetEmbeddingRequest;
 use Codewithkyrian\ChromaDB\Requests\QueryItemsRequest;
 use Codewithkyrian\ChromaDB\Requests\UpdateCollectionRequest;
@@ -188,6 +189,26 @@ it('can update a collection', function () {
     $updatedCollection = $this->api->getCollection($updatedName, 'default_database', 'default_tenant');
     expect($updatedCollection->name)->toBe($updatedName)
         ->and($updatedCollection->metadata)->toBe(['new' => 'metadata']);
+});
+
+it('can fork a collection', function () {
+    if (str_contains($this->api->baseUri, 'localhost') || !str_contains($this->api->baseUri, 'api.trychroma.com')) {
+        test()->markTestSkipped('Collection forking is not supported for local Chroma');
+    }
+
+    $collectionName = 'test-collection-' . uniqid();
+    $collection = $this->api->createCollection('default_database', 'default_tenant', new CreateCollectionRequest($collectionName, ['original' => 'metadata']));
+
+    $forkedName = 'forked-' . $collectionName;
+    $forkedCollection = $this->api->forkCollection($collection->id, 'default_database', 'default_tenant', new ForkCollectionRequest($forkedName));
+
+    expect($forkedCollection->name)->toBe($forkedName)
+        ->and($forkedCollection->id)->not->toBe($collection->id);
+
+    $collections = $this->api->listCollections('default_database', 'default_tenant');
+    $names = array_map(fn($c) => $c->name, $collections);
+    expect($names)->toContain($collectionName)
+        ->and($names)->toContain($forkedName);
 });
 
 it('can delete a collection', function () {
